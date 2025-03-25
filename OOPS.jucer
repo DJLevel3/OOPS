@@ -20,8 +20,8 @@
         <FILE id="rkQSlt" name="Modules.h" compile="0" resource="0" file="Source/Modules/Modules.h"/>
         <FILE id="ZKK1TJ" name="Oscillator.cpp" compile="1" resource="0" file="Source/Modules/Oscillator.cpp"/>
         <FILE id="P1UrMD" name="Oscillator.h" compile="0" resource="0" file="Source/Modules/Oscillator.h"/>
-        <FILE id="gyijmy" name="VCA.cpp" compile="1" resource="0" file="Source/Modules/VCA.cpp"/>
-        <FILE id="So3Lrh" name="VCA.h" compile="0" resource="0" file="Source/Modules/VCA.h"/>
+        <FILE id="oF6mKF" name="RingMod.cpp" compile="1" resource="0" file="Source/Modules/RingMod.cpp"/>
+        <FILE id="h6Ose0" name="RingMod.h" compile="0" resource="0" file="Source/Modules/RingMod.h"/>
       </GROUP>
       <FILE id="v476DF" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

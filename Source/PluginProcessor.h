@@ -57,6 +57,9 @@ public:
     Oscillator osc{ 96000 };
     Oscillator fmOsc{ 96000 };
     Envelope env{ 96000 };
+    RingMod ringm{ 96000 };
+
+    std::vector<ModuleComponent*> processingOrder;
 private:
     int wave = 1;
     //==============================================================================

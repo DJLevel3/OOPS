@@ -22,16 +22,22 @@ OOPSAudioProcessor::OOPSAudioProcessor()
                        )
 #endif
 {
+    processingOrder.push_back(new Oscillator(96000));
+    processingOrder.push_back(new Oscillator(96000));
+    processingOrder.push_back(new Envelope(96000));
+    processingOrder.push_back(new RingMod(96000));
     ModuleControl phaseInit = { {0, 0.25}, "Phase", true, true };
-    osc.putControl(2, phaseInit);
+    processingOrder[0]->putControl(2, phaseInit);
 
-    osc.reset();
-    fmOsc.reset();
-    env.reset();
+    processingOrder[0]->reset();
+    processingOrder[1]->reset();
+    processingOrder[2]->reset();
+    processingOrder[3]->reset();
 }
 
 OOPSAudioProcessor::~OOPSAudioProcessor()
 {
+    for (int i = processingOrder.size(); i > 0; i--) delete processingOrder[i-1];
 }
 
 //==============================================================================
@@ -101,9 +107,9 @@ void OOPSAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    osc.setSampleRate(sampleRate);
-    fmOsc.setSampleRate(sampleRate);
-    env.setSampleRate(sampleRate);
+    processingOrder[0]->setSampleRate(sampleRate);
+    processingOrder[1]->setSampleRate(sampleRate);
+    processingOrder[2]->setSampleRate(sampleRate);
 }
 
 void OOPSAudioProcessor::releaseResources()
@@ -178,41 +184,41 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
     for (int s = 0; s < buffer.getNumSamples(); s++) {
         if (noteOnTimes.size() > 0) {
             if (s == noteOnTimes[stampOn]) {
-                osc.reset();
-                fmOsc.reset();
+                processingOrder[0]->reset();
+                processingOrder[1]->reset();
 
                 double n = (noteNumbers[stampOn] - 60) / 12.0;
                 CableConnection pitch = { {n, n}, "Pitch", true, true, true };
-                osc.putCable(2, pitch);
+                processingOrder[0]->putCable(2, pitch);
                 CableConnection p2 = { {n, n}, "Pitch", true, true, true };
-                fmOsc.putCable(2, p2);
+                processingOrder[1]->putCable(2, p2);
 
                 CableConnection gateOn = { {1, 1}, "Trigger", true, true, true };
-                env.putCable(3, gateOn);
+                processingOrder[2]->putCable(3, gateOn);
                 stampOn = (stampOn + 1) % noteOnTimes.size();
             }
         }
         if (noteOffTimes.size() > 0) {
             if (s == noteOffTimes[stampOff]) {
                 CableConnection gateOff = { {0, 0}, "Trigger", true, true, true };
-                env.putCable(3, gateOff);
+                processingOrder[2]->putCable(3, gateOff);
                 stampOff = (stampOff + 1) % noteOffTimes.size();
             }
         }
 
-        fmOsc.run();
-        CableConnection c = fmOsc.getCable(0);
+        processingOrder[1]->run();
+        CableConnection c = processingOrder[1]->getCable(0);
         c.name = "FM";
         c.input = true;
-        osc.putCable(7, c);
-        osc.run();
-        c = osc.getCable(0);
+        processingOrder[0]->putCable(7, c);
+        processingOrder[0]->run();
+        c = processingOrder[0]->getCable(0);
         c.name = "Input";
         c.input = true;
-        env.putCable(1, c);
-        env.run();
+        processingOrder[2]->putCable(1, c);
+        processingOrder[2]->run();
 
-        c = env.getCable(0);
+        c = processingOrder[2]->getCable(0);
         for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         {
             float* channelData = buffer.getWritePointer(channel);

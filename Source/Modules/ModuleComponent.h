@@ -42,8 +42,8 @@ struct CableIdentifier {
 
 // Standard Locations
 // Controls:
-// 0 - Transpose
-// 1 - Tune
+// 0 - Transpose/Factor
+// 1 - Tune/CV Factor
 // 2 - Phase/Delay
 // 3 - Waveform/Type
 // 4 - Shape/Attack
@@ -56,7 +56,7 @@ struct CableIdentifier {
 // Cables:
 // 0 - Output
 // 1 - Input
-// 2 - Pitch
+// 2 - Pitch/Sidechain
 // 3 - CV IN
 // 4 - CV OUT
 // 5 - Reset

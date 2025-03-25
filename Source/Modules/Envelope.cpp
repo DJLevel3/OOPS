@@ -14,7 +14,7 @@
 //==============================================================================
 Envelope::Envelope(double sampleRate) : ModuleComponent(sampleRate)
 {
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
         sliders.push_back(new juce::Slider);
         sliderLabels.push_back(new juce::Label);
         addAndMakeVisible(sliders[i]);
@@ -26,15 +26,14 @@ Envelope::Envelope(double sampleRate) : ModuleComponent(sampleRate)
         sliderLabels[i]->setJustificationType(juce::Justification::centredBottom);
     }
 
-    addAndMakeVisible(shapeButton);
+    addAndMakeVisible(shapeButton); 
     shapeButton.setButtonText("Analog");
     shapeButton.setClickingTogglesState(true);
 
-    sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue(); controls[2].val[0] = v; controls[2].val[1] = v; controlsStale = true; };
-    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[4].val[0] = v; controls[4].val[1] = v; controlsStale = true; };
-    sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[5].val[0] = v; controls[5].val[1] = v; controlsStale = true; };
-    sliders[3]->onValueChange = [this] { double v = sliders[3]->getValue(); controls[6].val[0] = v; controls[6].val[1] = v; controlsStale = true; };
-    sliders[4]->onValueChange = [this] { double v = sliders[4]->getValue(); controls[7].val[0] = v; controls[7].val[1] = v; controlsStale = true; };
+    sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue(); controls[4].val[0] = v; controls[4].val[1] = v; controlsStale = true; };
+    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[5].val[0] = v; controls[5].val[1] = v; controlsStale = true; };
+    sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[6].val[0] = v; controls[6].val[1] = v; controlsStale = true; };
+    sliders[3]->onValueChange = [this] { double v = sliders[3]->getValue(); controls[7].val[0] = v; controls[7].val[1] = v; controlsStale = true; };
 
     shapeButton.onClick = [this] { bool v = shapeButton.getToggleState(); controls[3].val[0] = v; controls[3].val[1] = v; shapeButton.setButtonText(v ? "Linear" : "Analog"); controlsStale = true; };
 
@@ -65,16 +64,15 @@ Envelope::Envelope(double sampleRate) : ModuleComponent(sampleRate)
 
     sliders[0]->setValue(0, juce::sendNotificationSync);
     sliders[1]->setValue(0, juce::sendNotificationSync);
-    sliders[2]->setValue(0, juce::sendNotificationSync);
-    sliders[3]->setValue(1, juce::sendNotificationSync);
-    sliders[4]->setValue(0, juce::sendNotificationSync);
+    sliders[2]->setValue(1, juce::sendNotificationSync);
+    sliders[3]->setValue(0, juce::sendNotificationSync);
 
     reset();
 }
 
 Envelope::~Envelope()
 {
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < sliders.size(); i++) {
         delete sliders[i];
         delete sliderLabels[i];
     }
@@ -101,13 +99,11 @@ void Envelope::resized()
     shapeButton.setBounds(juce::Rectangle<int>(100, 20).withCentre(bottom.getCentre()));
     area.expand(-5, -5);
     area.removeFromTop(20);
-    int width = area.getWidth() / 5;
+    int width = area.getWidth() / 4;
     bottom = area.removeFromLeft(width);
     sliders[0]->setBounds(bottom.expanded(-2, -2));
     bottom = area.removeFromLeft(width);
     sliders[1]->setBounds(bottom.expanded(-2, -2));
-    bottom = area.removeFromRight(width);
-    sliders[4]->setBounds(bottom.expanded(-2, -2));
     bottom = area.removeFromRight(width);
     sliders[3]->setBounds(bottom.expanded(-2, -2));
     sliders[2]->setBounds(area.expanded(-2, -2));

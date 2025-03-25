@@ -1,0 +1,41 @@
+/*
+  ==============================================================================
+
+    RingMod.h
+    Created: 16 Mar 2025 11:48:31am
+    Author:  DJ_Level_3
+
+  ==============================================================================
+*/
+
+#pragma once
+
+#include <JuceHeader.h>
+#include "ModuleComponent.h"
+
+//==============================================================================
+/*
+*/
+class RingMod  : public ModuleComponent
+{
+public:
+    RingMod(double sampleRate);
+    ~RingMod() override;
+
+    void paint(juce::Graphics&) override;
+    void resized() override;
+    void updateControls() override;
+    void run() override;
+    void reset() override;
+protected:
+    double scale[2] = { 0,0 };
+    bool controlsStale = true;
+    juce::Slider factor;
+    juce::Slider factorMod;
+    juce::Label factorText;
+    juce::Label factorModText;
+private:
+    std::string controlNames[2] = { "Factor", "CV Mod" };
+    std::string cableNames[4] = { "Output", "Input", "Sidechain", "Modulate"};
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RingMod)
+};

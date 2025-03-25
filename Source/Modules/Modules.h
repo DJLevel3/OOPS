@@ -12,3 +12,4 @@
 #include "ModuleComponent.h"
 #include "Oscillator.h"
 #include "Envelope.h"
+#include "RingMod.h"

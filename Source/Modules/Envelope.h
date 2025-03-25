@@ -37,11 +37,11 @@ protected:
     bool linear[2];
     bool controlsStale = true;
 private:
-    std::string controlNames[8] = { "", "", "Delay", "Shape", "Attack", "Decay", "Sustain", "Release" };
+    std::string controlNames[8] = { "", "", "", "Shape", "Attack", "Decay", "Sustain", "Release" };
     std::string cableNames[6] = { "Output", "Input", "", "Trigger", "Envelope", "Reset" };
     std::vector<juce::Slider*> sliders;
     std::vector<juce::Label*> sliderLabels;
-    std::string sliderNames[5] = { "d", "A", "D", "S", "R" };
+    std::string sliderNames[5] = { "A", "D", "S", "R" };
     juce::TextButton shapeButton;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Envelope)
 };

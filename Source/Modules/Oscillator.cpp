@@ -124,22 +124,25 @@ void Oscillator::resized()
         sliders[i]->setTextBoxStyle(juce::Slider::TextBoxBelow, false, left.getWidth() - 10, 20);
     }
 
-    auto top = left.removeFromTop(left.getHeight() / 3);
+    auto top = left.removeFromTop(left.getHeight() / 3).expanded(0, -3);
     sliderLabels[0]->setBounds(top.removeFromTop(20));
     sliders[0]->setBounds(top);
-    top = area.removeFromTop(area.getHeight() / 3);
+    top = area.removeFromTop(area.getHeight() / 3).expanded(0, -3);
     sliderLabels[1]->setBounds(top.removeFromTop(20));
     sliders[1]->setBounds(top);
 
-    top = left.removeFromTop(left.getHeight() / 2);
+    top = left.removeFromTop(left.getHeight() / 2).expanded(0, -3);
     sliderLabels[2]->setBounds(top.removeFromTop(20));
     sliders[2]->setBounds(top);
-    top = area.removeFromTop(area.getHeight() / 2);
+    top = area.removeFromTop(area.getHeight() / 2).expanded(0, -3);
     sliderLabels[3]->setBounds(top.removeFromTop(20));
     sliders[3]->setBounds(top);
 
+    left = left.expanded(0, -3);
     sliderLabels[4]->setBounds(left.removeFromTop(20));
     sliders[4]->setBounds(left);
+
+    area = area.expanded(0, -3);
     sliderLabels[5]->setBounds(area.removeFromTop(20));
     sliders[5]->setBounds(area);
 
