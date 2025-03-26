@@ -33,8 +33,8 @@ public:
     void reset(int voice) override;
 protected:
     double basePitch[2] = { 261.63, 261.63 };
-    double frequency[8][2] = { 0, 0 };
-    double phase[8][2] = { 0, 0 };
+    double frequency[NUM_VOICES][2] = { 0, 0 };
+    double phase[NUM_VOICES][2] = { 0, 0 };
     bool controlsStale = true;
     bool mono = false;
 private:

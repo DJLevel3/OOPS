@@ -20,8 +20,8 @@ OOPSAudioProcessorEditor::OOPSAudioProcessorEditor (OOPSAudioProcessor& p)
 
     
     addAndMakeVisible(voicesSlider);
-    voicesSlider.setRange(1, 16, 1);
-    voicesSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    voicesSlider.setRange(1, NUM_VOICES, 1);
+    voicesSlider.setSliderStyle(juce::Slider::Rotary);
     voicesSlider.onValueChange = [this] {
         audioProcessor.voiceLimit = voicesSlider.getValue();
         };
@@ -46,8 +46,7 @@ void OOPSAudioProcessorEditor::resized()
     juce::Rectangle<int> panel = getLocalBounds();
     juce::Rectangle<int> area = panel.removeFromRight(1080);
     juce::Rectangle<int> area2 = area.removeFromBottom(400);
-
-    voicesSlider.setBounds(panel.expanded(-30));
+    voicesSlider.setBounds(panel.removeFromBottom(40).expanded(-5,-5));
 
     for (int i = 0; i < 8; i++) {
         moduleSlots.push_back(area.removeFromLeft(135));

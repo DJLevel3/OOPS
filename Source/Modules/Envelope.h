@@ -32,12 +32,12 @@ public:
     }
     void reset(int voice) override;
 protected:
-    double triggered[8][2] = { 0 };
-    double phase[8][2] = { 0 };
-    double currentValue[8][2] = { 0 };
+    double triggered[NUM_VOICES][2] = { 0 };
+    double phase[NUM_VOICES][2] = { 0 };
+    double currentValue[NUM_VOICES][2] = { 0 };
     double rates[5][2] = { 0 };
     double delayTime[2] = { 0 };
-    double delayCounter[8][2] = { 0 };
+    double delayCounter[NUM_VOICES][2] = { 0 };
     bool linear[2];
     bool controlsStale = true;
 private:
