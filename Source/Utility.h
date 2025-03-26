@@ -12,6 +12,9 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
+
+#define NUM_VOICES 8
 
 #define PI  3.14159265359
 #define TAU 6.28318530718

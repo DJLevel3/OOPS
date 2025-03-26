@@ -13,13 +13,9 @@
 #include <JuceHeader.h>
 #include "../Utility.h"
 
-//==============================================================================
-/*
-*/
-
 // Value, Name, Fresh, Input, Valid
 struct CableConnection {
-    double val[2] = { 0,0 };
+    double val[NUM_VOICES][2] = { 0 };
     std::string name = "";
     bool fresh = false;
     bool input = false;
@@ -32,12 +28,6 @@ struct ModuleControl {
     std::string name = "";
     bool stereo = true;
     bool valid = false;
-};
-
-// Index, Input
-struct CableIdentifier {
-    int index;
-    bool input = false;
 };
 
 // Standard Locations
@@ -57,7 +47,7 @@ struct CableIdentifier {
 // 0 - Output
 // 1 - Input
 // 2 - Pitch/Sidechain
-// 3 - CV IN
+// 3 - CV IN/Gate
 // 4 - CV OUT
 // 5 - Reset
 // 6 - Clock
@@ -71,7 +61,7 @@ public:
     ModuleComponent(double sampleRate);
     ~ModuleComponent() override;
 
-    CableIdentifier findCable(std::string name);
+    int findCable(std::string name);
     int findControl(std::string name);
 
     CableConnection getCable(int index);
@@ -83,12 +73,17 @@ public:
     void setSampleRate(double sampleRate);
 
     virtual void reset() = 0;
+    virtual void reset(int voice) = 0;
     virtual void updateControls() = 0;
     virtual void run() = 0;
 
     static double clamp(double val, double min = 0, double max = 1) {
         return std::max(std::min(val, max), min);
     }
+
+    bool needsPitch = false;
+    bool needsGate = false;
+    bool needsReset = false;
 
 protected:
     std::vector<CableConnection> cables;

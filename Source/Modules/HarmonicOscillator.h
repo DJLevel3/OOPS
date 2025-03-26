@@ -16,13 +16,13 @@
 //==============================================================================
 /*
 */
-class Oscillator  : public ModuleComponent
+class HarmonicOscillator : public ModuleComponent
 {
 public:
-    Oscillator(double sampleRate);
-    ~Oscillator() override;
+    HarmonicOscillator(double sampleRate);
+    ~HarmonicOscillator() override;
 
-    void paint (juce::Graphics&) override;
+    void paint(juce::Graphics&) override;
     void resized() override;
     void updateControls() override;
     void run() override;
@@ -38,11 +38,11 @@ protected:
     bool controlsStale = true;
     bool mono = false;
 private:
-    std::string controlNames[6] = { "Transpose", "Tune", "Phase", "Waveform", "Shape", "FM" };
-    std::string cableNames[8] = { "Output", "Input", "Pitch", "PWM", "", "", "", "FM"};
+    std::string controlNames[6] = { "Numerator", "Denominator", "Phase", "Waveform", "Shape", "FM" };
+    std::string cableNames[8] = { "Output", "Input", "Pitch", "PWM", "", "", "", "FM" };
     std::vector<juce::Slider*> sliders;
     std::vector<juce::Label*> sliderLabels;
-    std::string sliderNames[6] = { "Pitch", "Detune", "Phase", "FM", "Wave", "Shape" };
+    std::string sliderNames[6] = { "Numerator", "Denominator", "Phase", "FM", "Wave", "Shape" };
     juce::TextButton stereoButton;
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Oscillator)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HarmonicOscillator)
 };

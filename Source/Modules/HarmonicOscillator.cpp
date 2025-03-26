@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    Oscillator.cpp
+    HarmonicOscillator.cpp
     Created: 16 Mar 2025 11:47:04am
     Author:  DJ_Level_3
 
@@ -9,10 +9,10 @@
 */
 
 #include <JuceHeader.h>
-#include "Oscillator.h"
+#include "HarmonicOscillator.h"
 
 //==============================================================================
-Oscillator::Oscillator(double sampleRate) : ModuleComponent(sampleRate)
+HarmonicOscillator::HarmonicOscillator(double sampleRate) : ModuleComponent(sampleRate)
 {
     needsPitch = true;
     needsReset = true;
@@ -30,9 +30,9 @@ Oscillator::Oscillator(double sampleRate) : ModuleComponent(sampleRate)
     stereoButton.setButtonText("Stereo");
     stereoButton.setClickingTogglesState(true);
 
-    sliders[0]->setRange(-24, 24, 1);
+    sliders[0]->setRange(1, 16, 1);
     sliders[0]->setSliderStyle(juce::Slider::Rotary);
-    sliders[1]->setRange(-100, 100, 1);
+    sliders[1]->setRange(1, 16, 1);
     sliders[1]->setSliderStyle(juce::Slider::Rotary);
     sliders[2]->setRange(-1, 1, 0.01);
     sliders[2]->setSliderStyle(juce::Slider::Rotary);
@@ -44,7 +44,7 @@ Oscillator::Oscillator(double sampleRate) : ModuleComponent(sampleRate)
     sliders[5]->setSliderStyle(juce::Slider::Rotary);
 
     sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue(); controls[0].val[0] = v; controls[0].val[1] = v; controlsStale = true; };
-    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[1].val[0] = v; controls[1].val[1] = -v; controlsStale = true; };
+    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[1].val[0] = v; controls[1].val[1] = v; controlsStale = true; };
     sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[2].val[0] = v; controls[2].val[1] = 0; controlsStale = true; };
     sliders[3]->onValueChange = [this] { double v = sliders[3]->getValue(); controls[5].val[0] = v; controls[5].val[1] = v; controlsStale = true; };
     sliders[4]->onValueChange = [this] { double v = sliders[4]->getValue(); controls[3].val[0] = v; controls[3].val[1] = v; controlsStale = true; };
@@ -67,10 +67,14 @@ Oscillator::Oscillator(double sampleRate) : ModuleComponent(sampleRate)
         controls.push_back(control);
         controls[i].name = controlNames[i];
     }
+    controls[0].val[0] = 1;
+    controls[0].val[1] = 1;
+    controls[1].val[0] = 1;
+    controls[1].val[1] = 1;
 
     CableConnection cable = {
         {0},
-        "Cable",
+        "Cable           ",
         true,
         true,
         true
@@ -91,28 +95,29 @@ Oscillator::Oscillator(double sampleRate) : ModuleComponent(sampleRate)
     reset();
 }
 
-Oscillator::~Oscillator()
+HarmonicOscillator::~HarmonicOscillator()
 {
     for (int i = 0; i < 6; i++) {
         delete sliders[i];
         delete sliderLabels[i];
     }
+    return;
 }
 
-void Oscillator::paint (juce::Graphics& g)
+void HarmonicOscillator::paint(juce::Graphics& g)
 {
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));   // clear the background
 
-    g.setColour (juce::Colours::grey);
-    g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
+    g.setColour(juce::Colours::grey);
+    g.drawRect(getLocalBounds(), 1);   // draw an outline around the component
 
-    g.setColour (juce::Colours::white);
-    g.setFont (juce::FontOptions (14.0f));
-    g.drawText ("Oscillator", getLocalBounds().removeFromTop(20),
-                juce::Justification::centred, true);   // draw some placeholder text
+    g.setColour(juce::Colours::white);
+    g.setFont(juce::FontOptions(14.0f));
+    g.drawText("Harmonic Oscillator", getLocalBounds().removeFromTop(20),
+        juce::Justification::centred, true);   // draw some placeholder text
 }
 
-void Oscillator::resized()
+void HarmonicOscillator::resized()
 {
     juce::Rectangle<int> area = getLocalBounds();
     area.removeFromTop(20);
@@ -151,32 +156,34 @@ void Oscillator::resized()
 
 }
 
-void Oscillator::reset(int voice) {
+void HarmonicOscillator::reset(int voice) {
     phase[voice][0] = controls[2].val[0] * TAU;
     phase[voice][1] = controls[2].val[1] * TAU;
     controlsStale = true;
 }
 
-void Oscillator::updateControls() {
-    basePitch[0] = 261.63 * std::pow(2, controls[0].val[0] / 12) * std::pow(2, controls[1].val[0] / 1200);
-    basePitch[1] = 261.63 * std::pow(2, controls[0].val[1] / 12) * std::pow(2, controls[1].val[1] / 1200);
+void HarmonicOscillator::updateControls() {
+    basePitch[0] = 261.63 * controls[0].val[0] / controls[1].val[0];
+    basePitch[1] = 261.63 * controls[0].val[1] / controls[1].val[1];
     controlsStale = false;
 }
 
-void Oscillator::run() {
+void HarmonicOscillator::run() {
     if (controlsStale) updateControls();
 
     for (int voice = 0; voice < NUM_VOICES; voice++) {
-        for (int c = 0; c < 2; c++){
+        for (int c = 0; c < 2; c++) {
             // Update internal state values
             frequency[voice][c] = basePitch[c] * std::pow(2, cables[2].val[voice][c]) * (cables[7].val[voice][c] * controls[5].val[c] + 1) * timeStep * TAU;
             phase[voice][c] = std::fmod(phase[voice][c] + frequency[voice][c], TAU);
 
-            int w = controls[3].val[c];
+            // Calculate
             double x;
+
+            int w = controls[3].val[c];
             switch (w) {
             case 1:
-                x =  (phase[voice][c] - PI) / PI;
+                x = (phase[voice][c] - PI) / PI;
                 break;
             case 2:
                 x = (phase[voice][c] > (PI * (1 + controls[4].val[c]))) ? (-1 - controls[4].val[c]) : (1 - controls[4].val[c]);

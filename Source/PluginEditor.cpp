@@ -17,10 +17,15 @@ OOPSAudioProcessorEditor::OOPSAudioProcessorEditor (OOPSAudioProcessor& p)
     // editor's size to whatever you need it to be.
     setResizable(false, false);
     setSize (1080, 960);
-    addAndMakeVisible(audioProcessor.processingOrder[0]);
-    addAndMakeVisible(audioProcessor.processingOrder[1]);
-    addAndMakeVisible(audioProcessor.processingOrder[2]);
-    addAndMakeVisible(audioProcessor.processingOrder[3]);
+
+    
+    addAndMakeVisible(voicesSlider);
+    voicesSlider.setRange(1, 16, 1);
+    voicesSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    voicesSlider.onValueChange = [this] {
+        audioProcessor.voiceLimit = voicesSlider.getValue();
+        };
+    voicesSlider.setValue(8, juce::NotificationType::sendNotificationSync);
 }
 
 OOPSAudioProcessorEditor::~OOPSAudioProcessorEditor()
@@ -38,9 +43,11 @@ void OOPSAudioProcessorEditor::resized()
 {
     setSize(1280, 800);
     std::vector<juce::Rectangle<int>> moduleSlots;
-    juce::Rectangle<int> bounds = getLocalBounds();
-    juce::Rectangle<int> area = getLocalBounds().removeFromRight(1080);
+    juce::Rectangle<int> panel = getLocalBounds();
+    juce::Rectangle<int> area = panel.removeFromRight(1080);
     juce::Rectangle<int> area2 = area.removeFromBottom(400);
+
+    voicesSlider.setBounds(panel.expanded(-30));
 
     for (int i = 0; i < 8; i++) {
         moduleSlots.push_back(area.removeFromLeft(135));
@@ -51,6 +58,7 @@ void OOPSAudioProcessorEditor::resized()
     }
 
     for (int i = 0; i < std::min(audioProcessor.processingOrder.size(), moduleSlots.size()); i++) {
+        addAndMakeVisible(audioProcessor.processingOrder[i]);
         audioProcessor.processingOrder[i]->setBounds(moduleSlots[i]);
     }
 }

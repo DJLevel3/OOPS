@@ -10,10 +10,20 @@
 
 #include <JuceHeader.h>
 #include "Modules/Modules.h"
+#include "Utility.h"
 
-//==============================================================================
-/**
-*/
+struct CableMap {
+    int sourceM = 0;
+    int sourceC = 0;
+    int destM = 0;
+    int destC = 0;
+};
+
+struct Note {
+    int noteNumber;
+    int voiceNumber;
+};
+
 class OOPSAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -30,6 +40,11 @@ public:
    #endif
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+
+    int insertModule(int modDest, ModuleComponent* m);
+    int insertNewModule(int modDest, ModuleType modType);
+    void removeModule(int modDest);
+    int moveModule(int modDest, int modSource);
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -54,13 +69,22 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    Oscillator osc{ 96000 };
-    Oscillator fmOsc{ 96000 };
-    Envelope env{ 96000 };
-    RingMod ringm{ 96000 };
+
+    static bool compareCableMapsSource(const CableMap& map1, const CableMap& map2) {
+        return map1.sourceM < map2.sourceM;
+    }
+    static bool compareCableMapsDest(const CableMap& map1, const CableMap& map2) {
+        return map1.destM < map2.destM;
+    }
 
     std::vector<ModuleComponent*> processingOrder;
+    std::vector<CableMap> plugs;
+
+    double sampleRateMemory = 96000;
+    int voiceLimit = NUM_VOICES;
 private:
+    int latestVoice = NUM_VOICES-1;
+    std::vector<Note> notes;
     int wave = 1;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OOPSAudioProcessor)

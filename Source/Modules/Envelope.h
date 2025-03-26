@@ -26,14 +26,18 @@ public:
     void resized() override;
     void updateControls() override;
     void run() override;
-    void reset() override;
+    void reset() override {
+        for (int voice = 0; voice < NUM_VOICES; voice++) reset(voice);
+        time = 0;
+    }
+    void reset(int voice) override;
 protected:
-    double triggered[2] = { 0,0 };
-    double phase[2] = { 0,0 };
-    double currentValue[2] = { 0.0 };
-    double rates[5][2] = { {0,0}, {0,0}, {0,0}, {0,0}, {0,0} };
-    double delayTime[2] = { 0,0 };
-    double delayCounter[2] = { 0,0 };
+    double triggered[8][2] = { 0 };
+    double phase[8][2] = { 0 };
+    double currentValue[8][2] = { 0 };
+    double rates[5][2] = { 0 };
+    double delayTime[2] = { 0 };
+    double delayCounter[8][2] = { 0 };
     bool linear[2];
     bool controlsStale = true;
 private:

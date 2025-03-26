@@ -11,5 +11,13 @@
 #pragma once
 #include "ModuleComponent.h"
 #include "Oscillator.h"
+#include "HarmonicOscillator.h"
 #include "Envelope.h"
 #include "RingMod.h"
+
+enum ModuleType {
+    OscillatorType,
+    HarmonicOscillatorType,
+    EnvelopeType,
+    RingModType
+};

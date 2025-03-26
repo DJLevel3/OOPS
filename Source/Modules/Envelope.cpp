@@ -14,6 +14,7 @@
 //==============================================================================
 Envelope::Envelope(double sampleRate) : ModuleComponent(sampleRate)
 {
+    needsGate = true;
     for (int i = 0; i < 4; i++) {
         sliders.push_back(new juce::Slider);
         sliderLabels.push_back(new juce::Label);
@@ -44,7 +45,7 @@ Envelope::Envelope(double sampleRate) : ModuleComponent(sampleRate)
         true
     };
     CableConnection cable = {
-        {0,0},
+        {0},
         "Cable",
         true,
         true,
@@ -95,30 +96,28 @@ void Envelope::resized()
 {
     juce::Rectangle<int> area = getLocalBounds();
     area.removeFromTop(20);
-    auto bottom = area.removeFromBottom(25);
+    auto bottom = area.removeFromBottom(35);
     shapeButton.setBounds(juce::Rectangle<int>(100, 20).withCentre(bottom.getCentre()));
     area.expand(-5, -5);
-    area.removeFromTop(20);
-    int width = area.getWidth() / 4;
-    bottom = area.removeFromLeft(width);
-    sliders[0]->setBounds(bottom.expanded(-2, -2));
-    bottom = area.removeFromLeft(width);
-    sliders[1]->setBounds(bottom.expanded(-2, -2));
-    bottom = area.removeFromRight(width);
-    sliders[3]->setBounds(bottom.expanded(-2, -2));
-    sliders[2]->setBounds(area.expanded(-2, -2));
+    int width = area.getWidth() / 2;
+    bottom = area.removeFromBottom(area.getHeight()/2);
+    bottom.removeFromTop(25);
+    area.removeFromTop(25);
+    sliders[0]->setBounds(area.removeFromLeft(width).expanded(-10, -2));
+    sliders[1]->setBounds(area.expanded(-10, -2));
+    sliders[2]->setBounds(bottom.removeFromLeft(width).expanded(-10, -2));
+    sliders[3]->setBounds(bottom.expanded(-10, -2));
 }
 
-void Envelope::reset() {
-    phase[0] = 0;
-    phase[1] = 0;
-    currentValue[0] = 0;
-    currentValue[1] = 0;
-    delayCounter[0] = 0;
-    delayCounter[1] = 0;
-    triggered[0] = 0;
-    triggered[1] = 0;
-    time = 0;
+void Envelope::reset(int voice) {
+    phase[voice][0] = 0;
+    phase[voice][1] = 0;
+    currentValue[voice][0] = 0;
+    currentValue[voice][1] = 0;
+    delayCounter[voice][0] = 0;
+    delayCounter[voice][1] = 0;
+    triggered[voice][0] = 0;
+    triggered[voice][1] = 0;
     controlsStale = true;
 }
 
@@ -138,95 +137,96 @@ void Envelope::updateControls() {
 }
 
 void Envelope::run() {
+    if (controlsStale) updateControls();
+
     // Reset signal
-    for (int c = 0; c < 2; c++) {
-        if (cables[5].val[c] >= 1) {
-            phase[c] = 0;
-            currentValue[c] = 0;
-            delayCounter[c] = 0;
-            triggered[c] = 0;
-        }
-    }
-
-    if (controlsStale) {
-        updateControls();
-    }
-
-    // Trigger signal
-    for (int c = 0; c < 2; c++) {
-        if (cables[3].val[c] > 2.0 / 3) {
-            if (triggered[c] == 0) {
-                delayCounter[c] = 0;
-                phase[c] = 1;
+    for (int voice = 0; voice < NUM_VOICES; voice++) {
+        for (int c = 0; c < 2; c++) {
+            if (cables[5].val[voice][c] >= 1) {
+                phase[voice][c] = 0;
+                currentValue[voice][c] = 0;
+                delayCounter[voice][c] = 0;
+                triggered[voice][c] = 0;
             }
-            triggered[c] = 1;
         }
-        else if (cables[3].val[c] < 1.0 / 3) {
-            if (triggered[c] == 1) {
-                phase[c] = 0;
-            }
-            triggered[c] = 0;
-        }
-    }
 
-    // Calculate
-    for (int c = 0; c < 2; c++) {
-        double rate = clamp(rates[int(phase[c])][c]);
-        if (linear[c]) {
-            switch (int(phase[c])) {
-            case 1: // delay
-                currentValue[c] = clamp(currentValue[c] - rate);
-                delayCounter[c] += timeStep;
-                if (delayCounter[c] >= delayTime[c]) phase[c] += 1;
-                break;
-            case 2: // attack
-                currentValue[c] = clamp(currentValue[c] + rate);
-                if (currentValue[c] >= 1) phase[c] += 1;
-                break;
-            case 3: // decay
-                currentValue[c] = clamp(currentValue[c] - rate);
-                if (currentValue[c] <= rates[4][c]) {
-                    currentValue[c] = rates[4][c];
-                    phase[c] += 1;
+
+        // Trigger signal
+        for (int c = 0; c < 2; c++) {
+            if (cables[3].val[voice][c] > 2.0 / 3) {
+                if (triggered[voice][c] == 0) {
+                    delayCounter[voice][c] = 0;
+                    phase[voice][c] = 1;
                 }
-                break;
-            case 4: // sustain
-                break;
-            default: // release
-                currentValue[c] = clamp(currentValue[c] - rate);
+                triggered[voice][c] = 1;
             }
-        }
-        else {
-            rate = 1 - rate;
-            switch (int(phase[c])) {
-            case 1: // delay
-                currentValue[c] = clamp(((currentValue[c] + 1) * rate) - 1);
-                delayCounter[c] += timeStep;
-                if (delayCounter[c] >= delayTime[c]) phase[c] += 1;
-                break;
-            case 2: // attack
-                currentValue[c] = clamp(((currentValue[c] - 2) * rate) + 2);
-                if (currentValue[c] >= 1) phase[c] += 1;
-                break;
-            case 3: // decay
-                currentValue[c] = clamp(((currentValue[c] + 1) * rate) - 1, rates[4][c], 1.0);
-                if (currentValue[c] <= rates[3][c]) {
-                    currentValue[c] = rates[3][c];
-                    phase[c] += 1;
+            else if (cables[3].val[voice][c] < 1.0 / 3) {
+                if (triggered[voice][c] == 1) {
+                    phase[voice][c] = 0;
                 }
-                break;
-            case 4: // sustain
-                break;
-            default: // release
-                currentValue[c] = clamp(((currentValue[c] + 1) * rate) - 1);
+                triggered[voice][c] = 0;
             }
         }
-    }
 
-    // Update outputs
-    cables[4].val[0] = currentValue[0];
-    cables[4].val[1] = currentValue[1];
-    cables[0].val[0] = cables[1].val[0] * currentValue[0];
-    cables[0].val[1] = cables[1].val[1] * currentValue[1];
+        // Calculate
+        for (int c = 0; c < 2; c++) {
+            double rate = clamp(rates[int(phase[voice][c])][c]);
+            if (linear[c]) {
+                switch (int(phase[voice][c])) {
+                case 1: // delay
+                    currentValue[voice][c] = clamp(currentValue[voice][c] - rate);
+                    delayCounter[voice][c] += timeStep;
+                    if (delayCounter[voice][c] >= delayTime[c]) phase[voice][c] += 1;
+                    break;
+                case 2: // attack
+                    currentValue[voice][c] = clamp(currentValue[voice][c] + rate);
+                    if (currentValue[voice][c] >= 1) phase[voice][c] += 1;
+                    break;
+                case 3: // decay
+                    currentValue[voice][c] = clamp(currentValue[voice][c] - rate);
+                    if (currentValue[voice][c] <= rates[4][c]) {
+                        currentValue[voice][c] = rates[4][c];
+                        phase[voice][c] += 1;
+                    }
+                    break;
+                case 4: // sustain
+                    break;
+                default: // release
+                    currentValue[voice][c] = clamp(currentValue[voice][c] - rate);
+                }
+            }
+            else {
+                rate = 1 - rate;
+                switch (int(phase[voice][c])) {
+                case 1: // delay
+                    currentValue[voice][c] = clamp(((currentValue[voice][c] + 1) * rate) - 1);
+                    delayCounter[voice][c] += timeStep;
+                    if (delayCounter[voice][c] >= delayTime[c]) phase[voice][c] += 1;
+                    break;
+                case 2: // attack
+                    currentValue[voice][c] = clamp(((currentValue[voice][c] - 2) * rate) + 2);
+                    if (currentValue[voice][c] >= 1) phase[voice][c] += 1;
+                    break;
+                case 3: // decay
+                    currentValue[voice][c] = clamp(((currentValue[voice][c] + 1) * rate) - 1, rates[4][c], 1.0);
+                    if (currentValue[voice][c] <= rates[3][c]) {
+                        currentValue[voice][c] = rates[3][c];
+                        phase[voice][c] += 1;
+                    }
+                    break;
+                case 4: // sustain
+                    break;
+                default: // release
+                    currentValue[voice][c] = clamp(((currentValue[voice][c] + 1) * rate) - 1);
+                }
+            }
+        }
+
+        // Update outputs
+        cables[4].val[voice][0] = currentValue[voice][0];
+        cables[4].val[voice][1] = currentValue[voice][1];
+        cables[0].val[voice][0] = cables[1].val[voice][0] * currentValue[voice][0];
+        cables[0].val[voice][1] = cables[1].val[voice][1] * currentValue[voice][1];
+    }
     time += timeStep;
 }

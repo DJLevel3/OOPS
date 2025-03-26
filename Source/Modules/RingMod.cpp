@@ -42,7 +42,7 @@ RingMod::RingMod(double sampleRate) : ModuleComponent(sampleRate)
         true
     };
     CableConnection cable = {
-        {0,0},
+        {0},
         "Cable",
         true,
         true,
@@ -102,15 +102,17 @@ void RingMod::resized()
     factorMod.setBounds(box);
 }
 
-void RingMod::reset() {
-    time = 0;
+void RingMod::reset(int voice) {
 }
 
 void RingMod::run() {
     if (controlsStale) updateControls();
-    for (int c = 0; c < 2; c++) {
-        double m = scale[c] + controls[1].val[c] * cables[3].val[c];
-        cables[0].val[c] = cables[1].val[c] * (cables[2].val[c] * clamp(m) + clamp(1 - m));;
+
+    for (int voice = 0; voice < NUM_VOICES; voice++) {
+        for (int c = 0; c < 2; c++) {
+            double m = scale[c] + controls[1].val[c] * cables[3].val[voice][c];
+            cables[0].val[voice][c] = cables[1].val[voice][c] * (cables[2].val[voice][c] * clamp(m) + clamp(1 - m));;
+        }
     }
     time += timeStep;
 }

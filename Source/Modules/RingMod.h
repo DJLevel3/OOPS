@@ -26,7 +26,11 @@ public:
     void resized() override;
     void updateControls() override;
     void run() override;
-    void reset() override;
+    void reset() override {
+        for (int voice = 0; voice < NUM_VOICES; voice++) reset(voice);
+        time = 0;
+    }
+    void reset(int voice) override;
 protected:
     double scale[2] = { 0,0 };
     bool controlsStale = true;

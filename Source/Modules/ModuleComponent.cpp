@@ -25,12 +25,11 @@ void ModuleComponent::setSampleRate(double rate) {
     timeStep = 1.0 / rate;
 }
 
-CableIdentifier ModuleComponent::findCable(std::string name) {
-    CableIdentifier cable { -1, false };
+int ModuleComponent::findCable(std::string name) {
+    int cable = -1;
     for (int i = 0; i < cables.size(); i++) {
         if (cables[i].name == name) {
-            cable.index = i;
-            cable.input = cables[i].input;
+            cable = i;
             break;
         }
     }
@@ -56,7 +55,7 @@ CableConnection ModuleComponent::getCable(int index) {
 
 bool ModuleComponent::putCable(int index, CableConnection input) {
     if (index >= cables.size() || index < 0) return false;
-    if (cables[index].input == false) return false;
+    //if (cables[index].input == false) return false;
     cables[index] = input;
     return true;
 }
