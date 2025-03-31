@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    RingMod.cpp
+    Switch.cpp
     Created: 16 Mar 2025 11:48:31am
     Author:  DJ_Level_3
 
@@ -9,12 +9,13 @@
 */
 
 #include <JuceHeader.h>
-#include "RingMod.h"
+#include "Switch.h"
 
+/*
 //==============================================================================
-RingMod::RingMod(double sampleRate) : ModuleComponent(sampleRate)
+Switch::Switch(double sampleRate) : ModuleComponent(sampleRate)
 {
-    moduleType = RingModType;
+    moduleType = SwitchType;
     addAndMakeVisible(factor);
     addAndMakeVisible(factorText);
     factor.setRange(0.0, 1.0, 0.01);
@@ -65,38 +66,31 @@ RingMod::RingMod(double sampleRate) : ModuleComponent(sampleRate)
     factorMod.setValue(0.0, juce::sendNotificationSync);
 }
 
-RingMod::~RingMod()
+Switch::~Switch()
 {
 }
 
-void RingMod::paint (juce::Graphics& g)
+void Switch::paint(juce::Graphics& g)
 {
-    /* This demo code just fills the component's background and
-       draws some placeholder text to get you started.
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));   // clear the background
 
-       You should replace everything in this method with your own
-       drawing code..
-    */
+    g.setColour(juce::Colours::grey);
+    g.drawRect(getLocalBounds(), 1);   // draw an outline around the component
 
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
-
-    g.setColour (juce::Colours::grey);
-    g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
-
-    g.setColour (juce::Colours::white);
-    g.setFont (juce::FontOptions (14.0f));
-    g.drawText("Ring Mod", getLocalBounds().removeFromTop(20) ,
-                juce::Justification::centred, true);   // draw some placeholder text
+    g.setColour(juce::Colours::white);
+    g.setFont(juce::FontOptions(14.0f));
+    g.drawText("Ring Mod", getLocalBounds().removeFromTop(20),
+        juce::Justification::centred, true);   // draw some placeholder text
 }
 
-void RingMod::updateControls() {
+void Switch::updateControls() {
     for (int c = 0; c < 2; c++) {
         scale[c] = controls[0].val[c];
     }
     controlsStale = false;
 }
 
-void RingMod::resized()
+void Switch::resized()
 {
     juce::Rectangle<int> box = juce::Rectangle<int>(80, 240).withCentre(getLocalBounds().getCentre());
     factor.setBounds(box.removeFromTop(120));
@@ -104,10 +98,10 @@ void RingMod::resized()
     factorMod.setBounds(box);
 }
 
-void RingMod::reset(int voice) {
+void Switch::reset(int voice) {
 }
 
-void RingMod::run(int numVoices) {
+void Switch::run(int numVoices) {
     if (numVoices > NUM_VOICES) numVoices = NUM_VOICES;
     if (controlsStale) updateControls();
 
@@ -120,31 +114,30 @@ void RingMod::run(int numVoices) {
     time += timeStep;
 }
 
-juce::String RingMod::getState() {
+juce::String Switch::getState() {
     juce::String stateString = "";
-    stateString.append(juce::String(controls[0].val[0], 0, false), 10);
-    stateString.append(":", 1);
-    stateString.append(juce::String(controls[0].val[1], 0, false), 10);
-    stateString.append(":", 1);
-
-    stateString.append(juce::String(controls[1].val[0], 0, false), 10);
-    stateString.append(":", 1);
-    stateString.append(juce::String(controls[1].val[1], 0, false), 10);
-    stateString.append(":", 1);
+    for (int slider = 0; slider < (int)sliders.size(); slider++) {
+        stateString.append(juce::String(sliders[slider]->getValue(), 0, false), 10);
+        stateString.append(":", 1);
+        stateString.append(juce::String(sliders[slider]->getValue(), 0, false), 10);
+        stateString.append(":", 1);
+    }
     return stateString;
 }
 
-void RingMod::setState(juce::String state) {
+void Switch::setState(juce::String state) {
     controlsStale = true;
-
     juce::StringArray array;
     array.addTokens(state, ":", "");
-    if (array.size() < 4) {
-        factor.setValue(0, juce::sendNotificationSync);
-        factorMod.setValue(0, juce::sendNotificationSync);
+    if (array.size() < (int)controls.size() * 2 + 1) {
+        for (int slider = 0; slider < (int)sliders.size(); slider++) {
+            sliders[slider]->setValue(0.0, juce::sendNotificationSync);
+        }
         return;
     }
 
-    factor.setValue(array[0].getDoubleValue(), juce::sendNotificationSync);
-    factorMod.setValue(array[2].getDoubleValue() , juce::sendNotificationSync);
+    for (int slider = 0; slider < (int)sliders.size(); slider++) {
+        sliders[slider]->setValue(array[slider * 2].getDoubleValue(), juce::sendNotificationSync);
+    }
 }
+*/

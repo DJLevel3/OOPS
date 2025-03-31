@@ -82,7 +82,11 @@ public:
 
     double sampleRateMemory = 96000;
     int voiceLimit = NUM_VOICES;
+    int lastVoiceLimit = 0;
 private:
+    void defaultInit();
+    void stateInit(std::vector<ModuleType> moduleTypes, std::vector<CableMap> cables);
+    void clearProcessingOrder();
     int latestVoice = NUM_VOICES-1;
     std::vector<Note> notes;
     int wave = 1;

@@ -25,7 +25,11 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
     void updateControls() override;
-    void run() override;
+    void run(int numVoices) override;
+
+    juce::String getState();
+    void setState(juce::String state);
+
     void reset() override {
         for (int voice = 0; voice < NUM_VOICES; voice++) reset(voice);
         time = 0;
@@ -42,10 +46,10 @@ protected:
     bool controlsStale = true;
 private:
     std::string controlNames[8] = { "", "", "", "Shape", "Attack", "Decay", "Sustain", "Release" };
-    std::string cableNames[6] = { "Output", "Input", "", "Trigger", "Envelope", "Reset" };
+    std::vector<std::string> cableNames = { "Output", "Input", "", "Trigger", "Envelope", "Reset" };
     std::vector<juce::Slider*> sliders;
     std::vector<juce::Label*> sliderLabels;
-    std::string sliderNames[5] = { "A", "D", "S", "R" };
+    std::string sliderNames[4] = { "A", "D", "S", "R" };
     juce::TextButton shapeButton;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Envelope)
 };

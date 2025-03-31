@@ -14,6 +14,7 @@
 //==============================================================================
 HarmonicOscillator::HarmonicOscillator(double sampleRate) : ModuleComponent(sampleRate)
 {
+    moduleType = HarmonicOscillatorType;
     needsPitch = true;
     needsReset = true;
 
@@ -97,7 +98,7 @@ HarmonicOscillator::HarmonicOscillator(double sampleRate) : ModuleComponent(samp
 
 HarmonicOscillator::~HarmonicOscillator()
 {
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < sliders.size(); i++) {
         delete sliders[i];
         delete sliderLabels[i];
     }
@@ -168,36 +169,71 @@ void HarmonicOscillator::updateControls() {
     controlsStale = false;
 }
 
-void HarmonicOscillator::run() {
+void HarmonicOscillator::run(int numVoices) {
+    if (numVoices > NUM_VOICES) numVoices = NUM_VOICES;
     if (controlsStale) updateControls();
 
-    for (int voice = 0; voice < NUM_VOICES; voice++) {
+    for (int voice = 0; voice < numVoices; voice++) {
         for (int c = 0; c < 2; c++) {
-            // Update internal state values
-            frequency[voice][c] = basePitch[c] * std::pow(2, cables[2].val[voice][c]) * (cables[7].val[voice][c] * controls[5].val[c] + 1) * timeStep * TAU;
-            phase[voice][c] = std::fmod(phase[voice][c] + frequency[voice][c], TAU);
-
-            // Calculate
-            double x;
-
-            int w = controls[3].val[c];
-            switch (w) {
-            case 1:
-                x = (phase[voice][c] - PI) / PI;
-                break;
-            case 2:
-                x = (phase[voice][c] > (PI * (1 + controls[4].val[c]))) ? (-1 - controls[4].val[c]) : (1 - controls[4].val[c]);
-                break;
-            case 3:
-                x = ((phase[voice][c] > PI) ? -1 : 1) * ((std::fmod(2 * phase[voice][c], TAU) - PI) / PI);
-                break;
-            default:
-                x = std::sin(phase[voice][c]);
+            if (mono && c > 0) {
+                cables[0].val[voice][c] = cables[0].val[voice][0];
             }
+            else {
+                // Update internal state values
+                frequency[voice][c] = basePitch[c] * std::pow(2, cables[2].val[voice][c]) * (cables[7].val[voice][c] * controls[5].val[c] + 1) * timeStep * TAU;
+                phase[voice][c] = std::fmod(phase[voice][c] + frequency[voice][c], TAU);
 
-            // Update outputs
-            cables[0].val[voice][c] = x;
+                // Calculate
+                double x;
+
+                int w = (int)controls[3].val[c];
+                switch (w) {
+                case 1:
+                    x = (phase[voice][c] - PI) / PI;
+                    break;
+                case 2:
+                    x = (phase[voice][c] > (PI * (1 + controls[4].val[c]))) ? (-1 - controls[4].val[c]) : (1 - controls[4].val[c]);
+                    break;
+                case 3:
+                    x = ((phase[voice][c] > PI) ? -1 : 1) * ((std::fmod(2 * phase[voice][c], TAU) - PI) / PI);
+                    break;
+                default:
+                    x = std::sin(phase[voice][c]);
+                }
+
+                // Update outputs
+                cables[0].val[voice][c] = x;
+            }
         }
     }
     time += timeStep;
+}
+
+juce::String HarmonicOscillator::getState() {
+    juce::String stateString = "";
+    for (int slider = 0; slider < (int)sliders.size(); slider++) {
+        stateString.append(juce::String(sliders[slider]->getValue(), 0, false), 10);
+        stateString.append(":", 1);
+        stateString.append(juce::String(sliders[slider]->getValue(), 0, false), 10);
+        stateString.append(":", 1);
+    }
+    stateString.append(mono ? "M" : "S", 1);
+    return stateString;
+}
+void HarmonicOscillator::setState(juce::String state) {
+    controlsStale = true;
+    juce::StringArray array;
+    array.addTokens(state, ":", "");
+    if (array.size() < (int)controls.size() * 2 + 1) {
+        for (int slider = 0; slider < (int)sliders.size(); slider++) {
+            sliders[slider]->setValue(0.0, juce::sendNotificationSync);
+        }
+        return;
+    }
+
+    for (int slider = 0; slider < (int)sliders.size(); slider++) {
+        sliders[slider]->setValue(array[slider * 2].getDoubleValue(), juce::sendNotificationSync);
+    }
+    mono = state.getLastCharacter() == 'M';
+    stereoButton.setToggleState(mono, juce::sendNotificationSync);
 }

@@ -29,6 +29,7 @@ private:
     // access the processor object that created it.
     OOPSAudioProcessor& audioProcessor;
     juce::Slider voicesSlider;
+    int oldPOSize = -1;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OOPSAudioProcessorEditor)
 };

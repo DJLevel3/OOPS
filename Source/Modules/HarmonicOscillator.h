@@ -25,7 +25,9 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
     void updateControls() override;
-    void run() override;
+    void run(int numVoices) override;
+    juce::String getState();
+    void setState(juce::String state);
     void reset() override {
         for (int voice = 0; voice < NUM_VOICES; voice++) reset(voice);
         time = 0;
@@ -39,7 +41,7 @@ protected:
     bool mono = false;
 private:
     std::string controlNames[6] = { "Numerator", "Denominator", "Phase", "Waveform", "Shape", "FM" };
-    std::string cableNames[8] = { "Output", "Input", "Pitch", "PWM", "", "", "", "FM" };
+    std::vector<std::string> cableNames = { "Output", "Input", "Pitch", "PWM", "", "", "", "FM" };
     std::vector<juce::Slider*> sliders;
     std::vector<juce::Label*> sliderLabels;
     std::string sliderNames[6] = { "Numerator", "Denominator", "Phase", "FM", "Wave", "Shape" };

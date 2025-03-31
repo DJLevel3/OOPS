@@ -65,6 +65,13 @@ public:
     int findControl(std::string name);
 
     CableConnection getCable(int index);
+    std::string getCableName(int cableNumber) {
+        if (cableNumber >= cables.size()) return "";
+        return cables[cableNumber].name;
+    }
+    int getNumCables() {
+        return (int)cables.size();
+    }
     bool putCable(int index, CableConnection input);
 
     ModuleControl getControl(int index);
@@ -72,10 +79,13 @@ public:
 
     void setSampleRate(double sampleRate);
 
+    virtual juce::String getState() = 0;
+    virtual void setState(juce::String state) = 0;
+
     virtual void reset() = 0;
     virtual void reset(int voice) = 0;
     virtual void updateControls() = 0;
-    virtual void run() = 0;
+    virtual void run(int numVoices) = 0;
 
     static double clamp(double val, double min = 0, double max = 1) {
         return std::max(std::min(val, max), min);
@@ -85,7 +95,11 @@ public:
     bool needsGate = false;
     bool needsReset = false;
 
+    bool isMaster = false;
+
+    ModuleType moduleType = NullType;
 protected:
+    bool controlsStale = false;
     std::vector<CableConnection> cables;
     std::vector<ModuleControl> controls;
     double sampleRate;

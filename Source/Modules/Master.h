@@ -1,8 +1,8 @@
 /*
   ==============================================================================
 
-    Oscillator.h
-    Created: 16 Mar 2025 11:47:04am
+    Master.h
+    Created: 27 Mar 2025 10:29:09am
     Author:  DJ_Level_3
 
   ==============================================================================
@@ -16,15 +16,14 @@
 //==============================================================================
 /*
 */
-class Oscillator  : public ModuleComponent
+class Master  : public ModuleComponent
 {
 public:
-    Oscillator(double sampleRate);
-    ~Oscillator() override;
+    Master(double sampleRate);
+    ~Master() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
-    void updateControls() override;
     void run(int numVoices) override;
     juce::String getState();
     void setState(juce::String state);
@@ -33,18 +32,15 @@ public:
         time = 0;
     }
     void reset(int voice) override;
+    void updateControls() override;
 protected:
-    double basePitch[2] = { 261.63, 261.63 };
-    double frequency[NUM_VOICES][2] = { 0, 0 };
-    double phase[NUM_VOICES][2] = { 0, 0 };
-    bool controlsStale = true;
-    bool mono = false;
+    double actualPitch[NUM_VOICES][2] = { 0 };
+    double targetPitch[NUM_VOICES][2] = { 0 };
 private:
-    std::string controlNames[6] = { "Transpose", "Tune", "Phase", "Waveform", "Shape", "FM" };
-    std::vector<std::string> cableNames = { "Output", "Input", "Pitch", "PWM", "", "", "", "FM"};
+    std::string controlNames[3] = { "Volume", "Octave", "Glide" };
+    std::vector<std::string> cableNames = { "Input", "Output", "Pitch", "Gate" };
     std::vector<juce::Slider*> sliders;
     std::vector<juce::Label*> sliderLabels;
-    std::string sliderNames[6] = { "Pitch", "Detune", "Phase", "FM", "Wave", "Shape" };
-    juce::TextButton stereoButton;
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Oscillator)
+    std::vector<std::string> sliderNames = { "Volume", "Octave", "Glide" };
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Master)
 };

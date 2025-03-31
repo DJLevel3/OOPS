@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    RingMod.h
+    VoltageUtility.h
     Created: 16 Mar 2025 11:48:31am
     Author:  DJ_Level_3
 
@@ -16,11 +16,11 @@
 //==============================================================================
 /*
 */
-class RingMod  : public ModuleComponent
+class VoltageUtility : public ModuleComponent
 {
 public:
-    RingMod(double sampleRate);
-    ~RingMod() override;
+    VoltageUtility(double sampleRate);
+    ~VoltageUtility() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
@@ -36,12 +36,11 @@ public:
 protected:
     double scale[2] = { 0,0 };
     bool controlsStale = true;
-    juce::Slider factor;
-    juce::Slider factorMod;
-    juce::Label factorText;
-    juce::Label factorModText;
 private:
-    std::string controlNames[2] = { "Factor", "CV Mod" };
-    std::vector<std::string> cableNames = { "Output", "Carrier", "Modulator", "Factor"};
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RingMod)
+    std::vector<std::string> controlNames = { "Scale A", "Offset A", "Scale B", "Offset B", "Scale C", "Offset C" };
+    std::vector<std::string> cableNames = { "A Out", "A In", "B Out", "B In", "C Out", "C In" };
+    std::vector<juce::Slider*> sliders;
+    std::vector<juce::Label*> sliderLabels;
+    std::vector<std::string> sliderNames = { "Scale A", "Offset A", "Scale B", "Offset B", "Scale C", "Offset C" };
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VoltageUtility)
 };

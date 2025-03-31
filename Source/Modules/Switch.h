@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    RingMod.h
+    Switch.h
     Created: 16 Mar 2025 11:48:31am
     Author:  DJ_Level_3
 
@@ -9,18 +9,19 @@
 */
 
 #pragma once
-
 #include <JuceHeader.h>
 #include "ModuleComponent.h"
 
 //==============================================================================
 /*
 */
-class RingMod  : public ModuleComponent
+
+/*
+class Switch : public ModuleComponent
 {
 public:
-    RingMod(double sampleRate);
-    ~RingMod() override;
+    Switch(double sampleRate);
+    ~Switch() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
@@ -36,12 +37,12 @@ public:
 protected:
     double scale[2] = { 0,0 };
     bool controlsStale = true;
-    juce::Slider factor;
-    juce::Slider factorMod;
-    juce::Label factorText;
-    juce::Label factorModText;
 private:
-    std::string controlNames[2] = { "Factor", "CV Mod" };
-    std::vector<std::string> cableNames = { "Output", "Carrier", "Modulator", "Factor"};
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RingMod)
+    std::vector<std::string> controlNames = { "Scale A", "Offset A", "Scale B", "Offset B", "Scale C", "Offset C", "Scale D", "Offset D", };
+    std::vector<std::string> cableNames = { "A Out", "A In", "B Out", "B In", "C Out", "C In", "D Out", "D In" };
+    std::vector<juce::Slider*> sliders;
+    std::vector<juce::Label*> sliderLabels;
+    std::string sliderNames[6] = { "Numerator", "Denominator", "Phase", "FM", "Wave", "Shape" };
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Switch)
 };
+*/

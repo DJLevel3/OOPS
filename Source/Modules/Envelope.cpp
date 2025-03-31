@@ -8,12 +8,12 @@
   ==============================================================================
 */
 
-#include <JuceHeader.h>
 #include "Envelope.h"
 
 //==============================================================================
 Envelope::Envelope(double sampleRate) : ModuleComponent(sampleRate)
 {
+    moduleType = EnvelopeType;
     needsGate = true;
     for (int i = 0; i < 4; i++) {
         sliders.push_back(new juce::Slider);
@@ -96,7 +96,7 @@ void Envelope::resized()
 {
     juce::Rectangle<int> area = getLocalBounds();
     area.removeFromTop(20);
-    auto bottom = area.removeFromBottom(35);
+    auto bottom = area.removeFromBottom(25);
     shapeButton.setBounds(juce::Rectangle<int>(100, 20).withCentre(bottom.getCentre()));
     area.expand(-5, -5);
     int width = area.getWidth() / 2;
@@ -136,11 +136,12 @@ void Envelope::updateControls() {
     controlsStale = false;
 }
 
-void Envelope::run() {
+void Envelope::run(int numVoices) {
+    if (numVoices > NUM_VOICES) numVoices = NUM_VOICES;
     if (controlsStale) updateControls();
 
     // Reset signal
-    for (int voice = 0; voice < NUM_VOICES; voice++) {
+    for (int voice = 0; voice < numVoices; voice++) {
         for (int c = 0; c < 2; c++) {
             if (cables[5].val[voice][c] >= 1) {
                 phase[voice][c] = 0;
@@ -229,4 +230,35 @@ void Envelope::run() {
         cables[0].val[voice][1] = cables[1].val[voice][1] * currentValue[voice][1];
     }
     time += timeStep;
+}
+
+juce::String Envelope::getState() {
+    juce::String stateString = "";
+    for (int slider = 0; slider < (int)sliders.size(); slider++) {
+        stateString.append(juce::String(sliders[slider]->getValue(), 0, false), 10);
+        stateString.append(":", 1);
+        stateString.append(juce::String(sliders[slider]->getValue(), 0, false), 10);
+        stateString.append(":", 1);
+    }
+    stateString.append((linear[0] ? "L" : "E"), 5);
+    return stateString;
+}
+
+void Envelope::setState(juce::String state) {
+    controlsStale = true;
+    juce::StringArray array;
+    array.addTokens(state, ":", "");
+    if (array.size() < (int)sliders.size() * 2 + 1) {
+        for (int slider = 0; slider < (int)sliders.size(); slider++) {
+            sliders[slider]->setValue(0.0, juce::sendNotificationSync);
+        }
+        return;
+    }
+
+    for (int slider = 0; slider < (int)sliders.size(); slider++) {
+        sliders[slider]->setValue(array[slider * 2].getDoubleValue(), juce::sendNotificationSync);
+    }
+    linear[0] = state.getLastCharacter() == 'L';
+    linear[1] = linear[0];
+    shapeButton.setToggleState(linear[0], juce::NotificationType::sendNotificationSync);
 }

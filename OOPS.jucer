@@ -4,9 +4,9 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn"
               pluginDesc="OpenOsciPlugSynth" pluginManufacturer="DJ_Level_3"
               pluginManufacturerCode="Djl3" pluginCode="OOPS" pluginFormats="buildAU,buildStandalone,buildVST3"
-              pluginVST3Category="Fx,Instrument,Synth" version="1.0.0" companyName="DJ_Level_3"
-              companyCopyright="DJ_Level_3" companyWebsite="https://github.com/DJLevel3"
-              pluginName="OOPS">
+              pluginVST3Category="Fx,Instrument,Stereo,Synth" version="1.0.0"
+              companyName="DJ_Level_3" companyCopyright="DJ_Level_3" companyWebsite="https://github.com/DJLevel3"
+              pluginName="OOPS" pluginChannelConfigs="{0,2},{2,2}">
   <MAINGROUP id="F7L7cS" name="OOPS">
     <GROUP id="{71F44391-4904-A138-0E6D-B24D6D7C84DF}" name="Source">
       <FILE id="iAT9GI" name="Utility.h" compile="0" resource="0" file="Source/Utility.h"/>
@@ -17,6 +17,8 @@
               file="Source/Modules/HarmonicOscillator.cpp"/>
         <FILE id="n3e8AC" name="HarmonicOscillator.h" compile="0" resource="0"
               file="Source/Modules/HarmonicOscillator.h"/>
+        <FILE id="uyrtxR" name="Master.cpp" compile="1" resource="0" file="Source/Modules/Master.cpp"/>
+        <FILE id="lZiRjz" name="Master.h" compile="0" resource="0" file="Source/Modules/Master.h"/>
         <FILE id="Riyz7L" name="ModuleComponent.cpp" compile="1" resource="0"
               file="Source/Modules/ModuleComponent.cpp"/>
         <FILE id="EHpaJh" name="ModuleComponent.h" compile="0" resource="0"
@@ -26,6 +28,12 @@
         <FILE id="P1UrMD" name="Oscillator.h" compile="0" resource="0" file="Source/Modules/Oscillator.h"/>
         <FILE id="oF6mKF" name="RingMod.cpp" compile="1" resource="0" file="Source/Modules/RingMod.cpp"/>
         <FILE id="h6Ose0" name="RingMod.h" compile="0" resource="0" file="Source/Modules/RingMod.h"/>
+        <FILE id="WglVxh" name="Switch.cpp" compile="1" resource="0" file="Source/Modules/Switch.cpp"/>
+        <FILE id="drzUQu" name="Switch.h" compile="0" resource="0" file="Source/Modules/Switch.h"/>
+        <FILE id="YwzWxs" name="VoltageUtility.cpp" compile="1" resource="0"
+              file="Source/Modules/VoltageUtility.cpp"/>
+        <FILE id="plddoj" name="VoltageUtility.h" compile="0" resource="0"
+              file="Source/Modules/VoltageUtility.h"/>
       </GROUP>
       <FILE id="v476DF" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
@@ -57,7 +65,8 @@
     <VS2022 targetFolder="Builds/VisualStudio2022">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="OOPS" enablePluginBinaryCopyStep="1"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="OOPS" enablePluginBinaryCopyStep="1"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="OOPS" enablePluginBinaryCopyStep="1"
+                       alwaysGenerateDebugSymbols="1" debugInformationFormat="ProgramDatabase"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../../../JUCE/modules"/>
