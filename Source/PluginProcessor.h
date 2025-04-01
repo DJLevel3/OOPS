@@ -46,6 +46,9 @@ public:
     void removeModule(int modDest);
     int moveModule(int modDest, int modSource);
 
+    void insertCable(int sourceM, int sourceC, int destM, int destC);
+    void removeCable(int cable);
+
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -84,9 +87,13 @@ public:
     int voiceLimit = NUM_VOICES;
     int lastVoiceLimit = 0;
 private:
+    void actuallyRemoveModule(int modDest);
+    void actuallyMoveModule(int modDest, int modSource);
     void defaultInit();
     void stateInit(std::vector<ModuleType> moduleTypes, std::vector<CableMap> cables);
     void clearProcessingOrder();
+    std::vector<int> markedForRemoval;
+    std::vector<std::vector<int>> markedForMovement;
     int latestVoice = NUM_VOICES-1;
     std::vector<Note> notes;
     int wave = 1;

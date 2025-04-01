@@ -13,6 +13,7 @@
 //==============================================================================
 Envelope::Envelope(double sampleRate) : ModuleComponent(sampleRate)
 {
+    numAutomations = 5;
     moduleType = EnvelopeType;
     needsGate = true;
     for (int i = 0; i < 4; i++) {
@@ -31,12 +32,12 @@ Envelope::Envelope(double sampleRate) : ModuleComponent(sampleRate)
     shapeButton.setButtonText("Analog");
     shapeButton.setClickingTogglesState(true);
 
-    sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue(); controls[4].val[0] = v; controls[4].val[1] = v; controlsStale = true; };
-    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[5].val[0] = v; controls[5].val[1] = v; controlsStale = true; };
-    sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[6].val[0] = v; controls[6].val[1] = v; controlsStale = true; };
-    sliders[3]->onValueChange = [this] { double v = sliders[3]->getValue(); controls[7].val[0] = v; controls[7].val[1] = v; controlsStale = true; };
+    sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue(); controls[4].val[0] = v; controls[4].val[1] = v; controlsStale = true; dawDirty.push_back(0); };
+    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[5].val[0] = v; controls[5].val[1] = v; controlsStale = true; dawDirty.push_back(1); };
+    sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[6].val[0] = v; controls[6].val[1] = v; controlsStale = true; dawDirty.push_back(2); };
+    sliders[3]->onValueChange = [this] { double v = sliders[3]->getValue(); controls[7].val[0] = v; controls[7].val[1] = v; controlsStale = true; dawDirty.push_back(3); };
 
-    shapeButton.onClick = [this] { bool v = shapeButton.getToggleState(); controls[3].val[0] = v; controls[3].val[1] = v; shapeButton.setButtonText(v ? "Linear" : "Analog"); controlsStale = true; };
+    shapeButton.onClick = [this] { bool v = shapeButton.getToggleState(); controls[3].val[0] = v; controls[3].val[1] = v; shapeButton.setButtonText(v ? "Linear" : "Analog"); controlsStale = true; dawDirty.push_back(5); };
 
     ModuleControl control = {
         {0,0},
@@ -81,15 +82,15 @@ Envelope::~Envelope()
 
 void Envelope::paint (juce::Graphics& g)
 {
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));  // clear the background
 
-    g.setColour (juce::Colours::grey);
+    g.setColour(juce::Colours::grey);
     g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
 
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (14.0f));
-    g.drawText("Envelope", getLocalBounds().removeFromTop(20) ,
-                juce::Justification::centred, true);   // draw some placeholder text
+    g.drawText(ModuleStrings.at(moduleType), getLocalBounds().removeFromTop(20) ,
+                juce::Justification::centred, true);
 }
 
 void Envelope::resized()
@@ -134,6 +135,13 @@ void Envelope::updateControls() {
         delayTime[c] = controls[2].val[c];
     }
     controlsStale = false;
+}
+
+void Envelope::automate(int channel, double newValue) {
+    if (channel < sliders.size()) {
+        sliders[channel]->setValue(newValue, juce::sendNotificationSync);
+    }
+    else if (channel == sliders.size()) shapeButton.setToggleState(newValue >= 1, juce::sendNotificationSync);
 }
 
 void Envelope::run(int numVoices) {

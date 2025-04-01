@@ -14,6 +14,7 @@
 //==============================================================================
 VoltageUtility::VoltageUtility(double sampleRate) : ModuleComponent(sampleRate)
 {
+    numAutomations = 6;
     moduleType = VoltageUtilityType;
     for (int i = 0; i < sliderNames.size(); i++) {
         sliders.push_back(new juce::Slider);
@@ -27,12 +28,12 @@ VoltageUtility::VoltageUtility(double sampleRate) : ModuleComponent(sampleRate)
         sliderLabels[i]->setJustificationType(juce::Justification::centredBottom);
     }
 
-    sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue(); controls[0].val[0] = v; controls[0].val[1] = v; controlsStale = true; };
-    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[1].val[0] = v; controls[1].val[1] = v; controlsStale = true; };
-    sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[2].val[0] = v; controls[2].val[1] = v; controlsStale = true; };
-    sliders[3]->onValueChange = [this] { double v = sliders[3]->getValue(); controls[3].val[0] = v; controls[3].val[1] = v; controlsStale = true; };
-    sliders[4]->onValueChange = [this] { double v = sliders[4]->getValue(); controls[4].val[0] = v; controls[4].val[1] = v; controlsStale = true; };
-    sliders[5]->onValueChange = [this] { double v = sliders[5]->getValue(); controls[5].val[0] = v; controls[5].val[1] = v; controlsStale = true; };
+    sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue(); controls[0].val[0] = v; controls[0].val[1] = v; controlsStale = true; dawDirty.push_back(0); };
+    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[1].val[0] = v; controls[1].val[1] = v; controlsStale = true; dawDirty.push_back(1); };
+    sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[2].val[0] = v; controls[2].val[1] = v; controlsStale = true; dawDirty.push_back(2); };
+    sliders[3]->onValueChange = [this] { double v = sliders[3]->getValue(); controls[3].val[0] = v; controls[3].val[1] = v; controlsStale = true; dawDirty.push_back(3); };
+    sliders[4]->onValueChange = [this] { double v = sliders[4]->getValue(); controls[4].val[0] = v; controls[4].val[1] = v; controlsStale = true; dawDirty.push_back(4); };
+    sliders[5]->onValueChange = [this] { double v = sliders[5]->getValue(); controls[5].val[0] = v; controls[5].val[1] = v; controlsStale = true; dawDirty.push_back(5); };
 
     ModuleControl control = {
         {0,0},
@@ -82,7 +83,7 @@ void VoltageUtility::paint(juce::Graphics& g)
     g.setColour(juce::Colours::white);
     g.setFont(juce::FontOptions(14.0f));
     auto area = getLocalBounds();
-    g.drawText("Utility", area.removeFromTop(20),
+    g.drawText(ModuleStrings.at(moduleType), area.removeFromTop(20),
         juce::Justification::centred, true);   // draw some placeholder text
 
     area.expand(-5, -5);
@@ -140,6 +141,12 @@ void VoltageUtility::run(int numVoices) {
         }
     }
     time += timeStep;
+}
+
+void VoltageUtility::automate(int channel, double newValue) {
+    if (channel < sliders.size()) {
+        sliders[channel]->setValue(newValue, juce::sendNotificationSync);
+    }
 }
 
 juce::String VoltageUtility::getState() {

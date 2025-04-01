@@ -86,6 +86,7 @@ public:
     virtual void reset(int voice) = 0;
     virtual void updateControls() = 0;
     virtual void run(int numVoices) = 0;
+    virtual void automate(int channel, double newValue) = 0;
 
     static double clamp(double val, double min = 0, double max = 1) {
         return std::max(std::min(val, max), min);
@@ -96,8 +97,12 @@ public:
     bool needsReset = false;
 
     bool isMaster = false;
+    int numAutomations = 0;
 
     ModuleType moduleType = NullType;
+
+    std::vector<int> dawDirty;
+
 protected:
     bool controlsStale = false;
     std::vector<CableConnection> cables;

@@ -26,6 +26,8 @@ public:
     void resized() override;
     void updateControls() override;
     void run(int numVoices) override;
+    void automate(int channel, double newValue);
+
     juce::String getState();
     void setState(juce::String state);
     void reset() override {

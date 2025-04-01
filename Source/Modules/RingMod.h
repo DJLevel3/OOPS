@@ -26,6 +26,8 @@ public:
     void resized() override;
     void updateControls() override;
     void run(int numVoices) override;
+    void automate(int channel, double newValue);
+
     juce::String getState();
     void setState(juce::String state);
     void reset() override {
@@ -41,7 +43,7 @@ protected:
     juce::Label factorText;
     juce::Label factorModText;
 private:
-    std::string controlNames[2] = { "Factor", "CV Mod" };
+    std::vector<std::string> controlNames = { "Factor", "CV Mod" };
     std::vector<std::string> cableNames = { "Output", "Carrier", "Modulator", "Factor"};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RingMod)
 };

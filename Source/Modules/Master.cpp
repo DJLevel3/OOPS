@@ -13,6 +13,7 @@
 //==============================================================================
 Master::Master(double sampleRate) : ModuleComponent(sampleRate)
 {
+    numAutomations = 3;
     moduleType = MasterType;
     isMaster = true;
     for (int i = 0; i < sliderNames.size(); i++) {
@@ -29,16 +30,16 @@ Master::Master(double sampleRate) : ModuleComponent(sampleRate)
     sliders[0]->setRange(-20, 0, 0.1);
     sliders[0]->setSliderStyle(juce::Slider::Rotary);
     sliders[0]->setTextValueSuffix(" dB");
-    sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue()/10; controls[0].val[0] = std::pow(10.0, v); controls[0].val[1] = std::pow(10.0, v); controlsStale = true; };
+    sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue() / 10; controls[0].val[0] = std::pow(10.0, v); controls[0].val[1] = std::pow(10.0, v); controlsStale = true; dawDirty.push_back(0);  };
 
     sliders[1]->setRange(-5, 5, 1);
     sliders[1]->setSliderStyle(juce::Slider::Rotary);
-    sliders[0]->setTextValueSuffix(" Oct");
-    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[1].val[0] = v; controls[1].val[1] = v; controlsStale = true; };
+    sliders[1]->setTextValueSuffix(" Oct");
+    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[1].val[0] = v; controls[1].val[1] = v; controlsStale = true; dawDirty.push_back(1); };
 
     sliders[2]->setRange(0, 1, 0.01);
     sliders[2]->setSliderStyle(juce::Slider::Rotary);
-    sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[2].val[0] = v; controls[2].val[1] = v; controlsStale = true; };
+    sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[2].val[0] = v; controls[2].val[1] = v; controlsStale = true; dawDirty.push_back(2); };
 
     ModuleControl control = {
         {0,0},
@@ -135,6 +136,12 @@ void Master::run(int numVoices) {
 
             cables[2].val[voice][c] = actualPitch[voice][c];
         }
+    }
+}
+
+void Master::automate(int channel, double newValue) {
+    if (channel < sliders.size()) {
+        sliders[channel]->setValue(newValue, juce::sendNotificationSync);
     }
 }
 

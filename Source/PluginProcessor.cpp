@@ -54,6 +54,117 @@ OOPSAudioProcessor::~OOPSAudioProcessor()
     clearProcessingOrder();
 }
 
+//==============================================================================
+const juce::String OOPSAudioProcessor::getName() const
+{
+    return JucePlugin_Name;
+}
+
+bool OOPSAudioProcessor::acceptsMidi() const
+{
+#if JucePlugin_WantsMidiInput
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool OOPSAudioProcessor::producesMidi() const
+{
+#if JucePlugin_ProducesMidiOutput
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool OOPSAudioProcessor::isMidiEffect() const
+{
+#if JucePlugin_IsMidiEffect
+    return true;
+#else
+    return false;
+#endif
+}
+
+double OOPSAudioProcessor::getTailLengthSeconds() const
+{
+    return 0.0;
+}
+
+int OOPSAudioProcessor::getNumPrograms()
+{
+    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
+    // so this should be at least 1, even if you're not really implementing programs.
+}
+
+int OOPSAudioProcessor::getCurrentProgram()
+{
+    return 0;
+}
+
+void OOPSAudioProcessor::setCurrentProgram(int index)
+{
+}
+
+const juce::String OOPSAudioProcessor::getProgramName(int index)
+{
+    return {};
+}
+
+void OOPSAudioProcessor::changeProgramName(int index, const juce::String& newName)
+{
+}
+
+void OOPSAudioProcessor::releaseResources()
+{
+    // When playback stops, you can use this as an opportunity to free up any
+    // spare memory, etc.
+}
+
+#ifndef JucePlugin_PreferredChannelConfigurations
+bool OOPSAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+{
+#if JucePlugin_IsMidiEffect
+    juce::ignoreUnused(layouts);
+    return true;
+#else
+    // This is the place where you check if the layout is supported.
+    // In this template code we only support mono or stereo.
+    // Some plugin hosts, such as certain GarageBand versions, will only
+    // load plugins that support stereo bus layouts.
+    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
+        && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+        return false;
+
+    // This checks if the input layout matches the output layout
+#if ! JucePlugin_IsSynth
+    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
+        return false;
+#endif
+
+    return true;
+#endif
+}
+#endif
+
+bool OOPSAudioProcessor::hasEditor() const
+{
+    return true; // (change this to false if you choose to not supply an editor)
+}
+
+juce::AudioProcessorEditor* OOPSAudioProcessor::createEditor()
+{
+    return new OOPSAudioProcessorEditor(*this);
+}
+
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new OOPSAudioProcessor();
+}
+
+// Actual code starts here
+
 void OOPSAudioProcessor::defaultInit() {
     std::vector<ModuleType> moduleTypes = {
         MasterType,
@@ -92,68 +203,6 @@ void OOPSAudioProcessor::clearProcessingOrder() {
         delete processingOrder[i];
         processingOrder.erase(processingOrder.begin() + i);
     }
-}
-
-//==============================================================================
-const juce::String OOPSAudioProcessor::getName() const
-{
-    return JucePlugin_Name;
-}
-
-bool OOPSAudioProcessor::acceptsMidi() const
-{
-   #if JucePlugin_WantsMidiInput
-    return true;
-   #else
-    return false;
-   #endif
-}
-
-bool OOPSAudioProcessor::producesMidi() const
-{
-   #if JucePlugin_ProducesMidiOutput
-    return true;
-   #else
-    return false;
-   #endif
-}
-
-bool OOPSAudioProcessor::isMidiEffect() const
-{
-   #if JucePlugin_IsMidiEffect
-    return true;
-   #else
-    return false;
-   #endif
-}
-
-double OOPSAudioProcessor::getTailLengthSeconds() const
-{
-    return 0.0;
-}
-
-int OOPSAudioProcessor::getNumPrograms()
-{
-    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
-}
-
-int OOPSAudioProcessor::getCurrentProgram()
-{
-    return 0;
-}
-
-void OOPSAudioProcessor::setCurrentProgram (int index)
-{
-}
-
-const juce::String OOPSAudioProcessor::getProgramName (int index)
-{
-    return {};
-}
-
-void OOPSAudioProcessor::changeProgramName (int index, const juce::String& newName)
-{
 }
 
 void OOPSAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
@@ -263,7 +312,6 @@ void OOPSAudioProcessor::setStateInformation(const void* data, int sizeInBytes) 
     }
 }
 
-//==============================================================================
 void OOPSAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
@@ -273,38 +321,6 @@ void OOPSAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     }
     sampleRateMemory = sampleRate;
 }
-
-void OOPSAudioProcessor::releaseResources()
-{
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
-}
-
-#ifndef JucePlugin_PreferredChannelConfigurations
-bool OOPSAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
-{
-  #if JucePlugin_IsMidiEffect
-    juce::ignoreUnused (layouts);
-    return true;
-  #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
-    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
-        return false;
-
-    // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-        return false;
-   #endif
-
-    return true;
-  #endif
-}
-#endif
 
 void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
@@ -464,6 +480,14 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
             }
             channelData[s] = (float)voicesSum;
         }
+        while (markedForMovement.size() > 0) {
+            actuallyMoveModule(markedForMovement[0][0], markedForMovement[0][1]);
+            markedForMovement.erase(markedForMovement.begin());
+        }
+        while (markedForRemoval.size() > 0) {
+            actuallyRemoveModule(markedForRemoval[0]);
+            markedForRemoval.erase(markedForRemoval.begin());
+        }
     }
 }
 
@@ -509,7 +533,11 @@ int OOPSAudioProcessor::insertNewModule(int modDest, ModuleType modType) {
 
 void OOPSAudioProcessor::removeModule(int modDest) {
     if (modDest < 1 || modDest >= processingOrder.size()) return;
+    markedForRemoval.push_back(modDest);
+}
 
+void OOPSAudioProcessor::actuallyRemoveModule(int modDest) {
+    const juce::MessageManagerLock mmLock;
     std::vector<int> toRemove;
     for (int i = 0; i < plugs.size(); i++) {
         if (plugs[i].sourceM == modDest || plugs[i].destM == modDest) toRemove.push_back(i);
@@ -525,7 +553,13 @@ void OOPSAudioProcessor::removeModule(int modDest) {
 
 int OOPSAudioProcessor::moveModule(int modDest, int modSource) {
     if (modSource < 1 || modSource >= processingOrder.size()) return -1;
-    if (modSource == modDest) return modDest;
+    if (modSource == modDest) return -1;
+    markedForMovement.push_back({ modDest, modSource });
+    return modDest;
+}
+
+void OOPSAudioProcessor::actuallyMoveModule(int modDest, int modSource) {
+    const juce::MessageManagerLock mmLock;
     int transferSource = modSource;
     modDest = insertModule(modDest, processingOrder[modSource]);
     if (modDest < modSource) transferSource++;
@@ -537,23 +571,31 @@ int OOPSAudioProcessor::moveModule(int modDest, int modSource) {
         if (plugs[i].destM > transferSource) plugs[i].destM--;
     }
     processingOrder.erase(processingOrder.begin() + transferSource);
-    return modDest;
 }
 
-//==============================================================================
-bool OOPSAudioProcessor::hasEditor() const
-{
-    return true; // (change this to false if you choose to not supply an editor)
+void OOPSAudioProcessor::insertCable(int sourceM, int sourceC, int destM, int destC) {
+    // Ensure modules in range
+    if (sourceM < 0 || sourceM >= processingOrder.size()) return;
+    if (destM < 0 || destM >= processingOrder.size()) return;
+
+    // Ensure cables in range
+    if (sourceC >= processingOrder[sourceM]->getNumCables()) return;
+    if (destC >= processingOrder[destM]->getNumCables()) return;
+
+    // Ensure cables valid
+    if (processingOrder[sourceM]->getCableName(sourceC) == "") return;
+    if (processingOrder[destM]->getCableName(destC) == "") return;
+
+    // insert cable
+    CableMap c = { sourceM, sourceC, destM, destC };
+    plugs.push_back(c);
+    std::sort(plugs.begin(), plugs.end(), compareCableMapsSource);
+    
 }
 
-juce::AudioProcessorEditor* OOPSAudioProcessor::createEditor()
-{
-    return new OOPSAudioProcessorEditor (*this);
+void OOPSAudioProcessor::removeCable(int cable) {
+    if (cable >= plugs.size()) return;
+    plugs.erase(plugs.begin() + cable);
+    std::sort(plugs.begin(), plugs.end(), compareCableMapsSource);
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
-{
-    return new OOPSAudioProcessor();
-}

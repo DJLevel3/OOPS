@@ -79,7 +79,7 @@ void Switch::paint(juce::Graphics& g)
 
     g.setColour(juce::Colours::white);
     g.setFont(juce::FontOptions(14.0f));
-    g.drawText("Ring Mod", getLocalBounds().removeFromTop(20),
+    g.drawText(ModuleStrings.at(moduleType), getLocalBounds().removeFromTop(20),
         juce::Justification::centred, true);   // draw some placeholder text
 }
 

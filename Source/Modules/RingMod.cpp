@@ -14,6 +14,7 @@
 //==============================================================================
 RingMod::RingMod(double sampleRate) : ModuleComponent(sampleRate)
 {
+    numAutomations = 3;
     moduleType = RingModType;
     addAndMakeVisible(factor);
     addAndMakeVisible(factorText);
@@ -33,8 +34,8 @@ RingMod::RingMod(double sampleRate) : ModuleComponent(sampleRate)
     factorModText.setJustificationType(juce::Justification::centredBottom);
     factorMod.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
 
-    factor.onValueChange = [this] { double v = factor.getValue(); controls[0].val[0] = v; controls[0].val[1] = v; controlsStale = true; };
-    factorMod.onValueChange = [this] { double v = factorMod.getValue(); controls[1].val[0] = v; controls[1].val[1] = v; };
+    factor.onValueChange = [this] { double v = factor.getValue(); controls[0].val[0] = v; controls[0].val[1] = v; controlsStale = true; dawDirty.push_back(0); };
+    factorMod.onValueChange = [this] { double v = factorMod.getValue(); controls[1].val[0] = v; controls[1].val[1] = v; dawDirty.push_back(1); };
 
     ModuleControl control = {
         {0,0},
@@ -51,11 +52,11 @@ RingMod::RingMod(double sampleRate) : ModuleComponent(sampleRate)
     };
 
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < controlNames.size(); i++) {
         controls.push_back(control);
         controls[i].name = controlNames[i];
     }
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < cableNames.size(); i++) {
         cables.push_back(cable);
         cables[i].name = cableNames[i];
     }
@@ -85,7 +86,7 @@ void RingMod::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (14.0f));
-    g.drawText("Ring Mod", getLocalBounds().removeFromTop(20) ,
+    g.drawText(ModuleStrings.at(moduleType), getLocalBounds().removeFromTop(20),
                 juce::Justification::centred, true);   // draw some placeholder text
 }
 
@@ -118,6 +119,15 @@ void RingMod::run(int numVoices) {
         }
     }
     time += timeStep;
+}
+
+void RingMod::automate(int channel, double newValue) {
+    if (channel == 0) {
+        factor.setValue(newValue, juce::sendNotificationSync);
+    }
+    else if (channel == 1) {
+        factorMod.setValue(newValue, juce::sendNotificationSync);
+    }
 }
 
 juce::String RingMod::getState() {

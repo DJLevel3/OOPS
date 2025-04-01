@@ -14,6 +14,7 @@
 //==============================================================================
 Oscillator::Oscillator(double sampleRate) : ModuleComponent(sampleRate)
 {
+    numAutomations = 7;
     moduleType = OscillatorType;
     needsPitch = true;
     needsReset = true;
@@ -44,18 +45,19 @@ Oscillator::Oscillator(double sampleRate) : ModuleComponent(sampleRate)
     sliders[5]->setRange(-1, 1, 0.01);
     sliders[5]->setSliderStyle(juce::Slider::Rotary);
 
-    sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue(); controls[0].val[0] = v; controls[0].val[1] = v; controlsStale = true; };
-    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[1].val[0] = v; controls[1].val[1] = -v; controlsStale = true; };
-    sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[2].val[0] = v; controls[2].val[1] = 0; controlsStale = true; };
-    sliders[3]->onValueChange = [this] { double v = sliders[3]->getValue(); controls[5].val[0] = v; controls[5].val[1] = v; controlsStale = true; };
-    sliders[4]->onValueChange = [this] { double v = sliders[4]->getValue(); controls[3].val[0] = v; controls[3].val[1] = v; controlsStale = true; };
-    sliders[5]->onValueChange = [this] { double v = sliders[5]->getValue(); controls[4].val[0] = v; controls[4].val[1] = v; controlsStale = true; };
+    sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue(); controls[0].val[0] = v; controls[0].val[1] =  v; controlsStale = true; dawDirty.push_back(0); };
+    sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[1].val[0] = v; controls[1].val[1] = -v; controlsStale = true; dawDirty.push_back(1); };
+    sliders[2]->onValueChange = [this] { double v = sliders[2]->getValue(); controls[2].val[0] = v; controls[2].val[1] =  0; controlsStale = true; dawDirty.push_back(2); };
+    sliders[3]->onValueChange = [this] { double v = sliders[3]->getValue(); controls[5].val[0] = v; controls[5].val[1] =  v; controlsStale = true; dawDirty.push_back(3); };
+    sliders[4]->onValueChange = [this] { double v = sliders[4]->getValue(); controls[3].val[0] = v; controls[3].val[1] =  v; controlsStale = true; dawDirty.push_back(4); };
+    sliders[5]->onValueChange = [this] { double v = sliders[5]->getValue(); controls[4].val[0] = v; controls[4].val[1] =  v; controlsStale = true; dawDirty.push_back(5); };
 
     stereoButton.onClick = [this] {
         bool v = stereoButton.getToggleState();
         mono = v;
         stereoButton.setButtonText(v ? "Mono" : "Stereo");
         controlsStale = true;
+        dawDirty.push_back(6);
         };
 
     ModuleControl control = {
@@ -109,7 +111,7 @@ void Oscillator::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (14.0f));
-    g.drawText ("Oscillator", getLocalBounds().removeFromTop(20),
+    g.drawText (ModuleStrings.at(moduleType), getLocalBounds().removeFromTop(20),
                 juce::Justification::centred, true);   // draw some placeholder text
 }
 
@@ -200,6 +202,13 @@ void Oscillator::run(int numVoices) {
         }
     }
     time += timeStep;
+}
+
+void Oscillator::automate(int channel, double newValue) {
+    if (channel < sliders.size()) {
+        sliders[channel]->setValue(newValue, juce::sendNotificationSync);
+    }
+    else if (channel == sliders.size()) stereoButton.setToggleState(newValue >= 1, juce::sendNotificationSync);
 }
 
 juce::String Oscillator::getState() {
