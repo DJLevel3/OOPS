@@ -121,6 +121,13 @@ void OOPSAudioProcessorEditor::paint (juce::Graphics& g)
     oldPOSize = (int)audioProcessor.processingOrder.size();
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+
+    g.setColour(juce::Colours::white);
+    g.setFont(juce::FontOptions(70.0f));
+    auto area = getLocalBounds();
+    area.removeFromRight(1080);
+    g.drawText("OOPS", area.removeFromTop(80),
+        juce::Justification::centred, true);
 }
 
 void OOPSAudioProcessorEditor::updatePanel(bool initialize) {
@@ -209,6 +216,7 @@ void OOPSAudioProcessorEditor::resized()
     juce::Rectangle<int> panel = getLocalBounds();
     juce::Rectangle<int> area = panel.removeFromRight(1080);
     juce::Rectangle<int> area2 = area.removeFromBottom(400);
+    panel.removeFromTop(120);
 
     // Modules
     for (int i = 0; i < 8; i++) {

@@ -117,7 +117,7 @@ void HarmonicOscillator::paint(juce::Graphics& g)
     g.setColour(juce::Colours::white);
     g.setFont(juce::FontOptions(14.0f));
     g.drawText(ModuleStrings.at(moduleType), getLocalBounds().removeFromTop(20),
-        juce::Justification::centred, true);   // draw some placeholder text
+        juce::Justification::centred, true);
 }
 
 void HarmonicOscillator::resized()
