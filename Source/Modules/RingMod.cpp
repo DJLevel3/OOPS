@@ -14,7 +14,7 @@
 //==============================================================================
 RingMod::RingMod(double sampleRate) : ModuleComponent(sampleRate)
 {
-    numAutomations = 3;
+    numAutomations = 2;
     moduleType = RingModType;
     addAndMakeVisible(factor);
     addAndMakeVisible(factorText);
@@ -35,7 +35,7 @@ RingMod::RingMod(double sampleRate) : ModuleComponent(sampleRate)
     factorMod.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
 
     factor.onValueChange = [this] { double v = factor.getValue(); controls[0].val[0] = v; controls[0].val[1] = v; controlsStale = true; dawDirty.push_back(0); };
-    factorMod.onValueChange = [this] { double v = factorMod.getValue(); controls[1].val[0] = v; controls[1].val[1] = v; dawDirty.push_back(1); };
+    factorMod.onValueChange = [this] { double v = factorMod.getValue(); controls[1].val[0] = v; controls[1].val[1] = v; controlsStale = true; dawDirty.push_back(1); };
 
     ModuleControl control = {
         {0,0},
@@ -60,10 +60,18 @@ RingMod::RingMod(double sampleRate) : ModuleComponent(sampleRate)
         cables.push_back(cable);
         cables[i].name = cableNames[i];
     }
+
     cables[0].input = false;
+
+    factor.setDoubleClickReturnValue(true, 0);
+    factorMod.setDoubleClickReturnValue(true, 0);
 
     factor.setValue(0.0, juce::sendNotificationSync);
     factorMod.setValue(0.0, juce::sendNotificationSync);
+    dawDirty.clear();
+
+    dawDirty.push_back(0);
+    dawDirty.push_back(1);
 }
 
 RingMod::~RingMod()
@@ -122,11 +130,18 @@ void RingMod::run(int numVoices) {
 }
 
 void RingMod::automate(int channel, double newValue) {
+    
     if (channel == 0) {
-        factor.setValue(newValue, juce::sendNotificationSync);
+        double h = floor((factor.getMaximum() - factor.getMinimum()) * (newValue) / factor.getInterval()) * factor.getInterval();
+        double v = (factor.getMinimum() + h);
+        juce::MessageManager::callAsync([this, v]() {factor.setValue(v, juce::sendNotificationSync); });
+        controlsStale = true;
     }
     else if (channel == 1) {
-        factorMod.setValue(newValue, juce::sendNotificationSync);
+        double h = floor((factorMod.getMaximum() - factorMod.getMinimum()) * (newValue) / factorMod.getInterval()) * factorMod.getInterval();
+        double v = (factorMod.getMinimum() + h);
+        juce::MessageManager::callAsync([this, v]() {factorMod.setValue(v, juce::sendNotificationSync); });
+        controlsStale = true;
     }
 }
 

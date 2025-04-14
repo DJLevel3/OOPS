@@ -88,12 +88,23 @@ HarmonicOscillator::HarmonicOscillator(double sampleRate) : ModuleComponent(samp
     }
     cables[0].input = false;
 
+    sliders[0]->setDoubleClickReturnValue(true, 1);
     sliders[0]->setValue(0, juce::sendNotificationSync);
+    sliders[1]->setDoubleClickReturnValue(true, 1);
     sliders[1]->setValue(0, juce::sendNotificationSync);
-    sliders[2]->setValue(0, juce::sendNotificationSync);
-    sliders[3]->setValue(0, juce::sendNotificationSync);
-    sliders[4]->setValue(0, juce::sendNotificationSync);
-    sliders[5]->setValue(0, juce::sendNotificationSync);
+    for (int i = 2; i < sliders.size(); i++) {
+        sliders[i]->setDoubleClickReturnValue(true, 0);
+        sliders[i]->setValue(0, juce::sendNotificationSync);
+    }
+    dawDirty.clear();
+
+    dawDirty.push_back(0);
+    dawDirty.push_back(1);
+    dawDirty.push_back(2);
+    dawDirty.push_back(3);
+    dawDirty.push_back(4);
+    dawDirty.push_back(5);
+    dawDirty.push_back(6);
 
     reset();
 }
@@ -212,10 +223,48 @@ void HarmonicOscillator::run(int numVoices) {
 }
 
 void HarmonicOscillator::automate(int channel, double newValue) {
+    
     if (channel < sliders.size()) {
-        sliders[channel]->setValue(newValue, juce::sendNotificationSync);
+        double v;
+        double h;
+        int c, s;
+        switch (channel) {
+        case 0:
+            c = 0;
+            s = 0;
+            break;
+        case 1:
+            c = 1;
+            s = 1;
+            break;
+        case 2:
+            c = 2;
+            s = 2;
+            break;
+        case 3:
+            c = 5;
+            s = 3;
+            break;
+        case 4:
+            c = 3;
+            s = 4;
+            break;
+        case 5:
+            c = 4;
+            s = 5;
+            break;
+        default:
+            return;
+        }
+        h = floor((sliders[s]->getMaximum() - sliders[s]->getMinimum()) * (newValue) / sliders[s]->getInterval()) * sliders[s]->getInterval();
+        v = (sliders[s]->getMinimum() + h);
+        juce::MessageManager::callAsync([this, s, v]() {sliders[s]->setValue(v, juce::sendNotificationSync); });
     }
-    else if (channel == sliders.size()) stereoButton.setToggleState(newValue >= 1, juce::sendNotificationSync);
+
+    else if (channel == sliders.size()) {
+        bool v = newValue >= 0.5;
+        juce::MessageManager::callAsync([this, v]() {stereoButton.setToggleState(v, juce::sendNotificationSync); });
+    }
 }
 
 juce::String HarmonicOscillator::getState() {

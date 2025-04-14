@@ -216,7 +216,7 @@ void OOPSAudioProcessorEditor::resized()
     juce::Rectangle<int> panel = getLocalBounds();
     juce::Rectangle<int> area = panel.removeFromRight(1080);
     juce::Rectangle<int> area2 = area.removeFromBottom(400);
-    panel.removeFromTop(120);
+    panel.removeFromTop(90);
 
     // Modules
     for (int i = 0; i < 8; i++) {

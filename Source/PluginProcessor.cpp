@@ -47,6 +47,15 @@ OOPSAudioProcessor::OOPSAudioProcessor()
         { 5, 0, 0, 1 },
     };
     stateInit(initModuleTypes, initCables);
+
+    for (int i = 0; i < MAX_AUTOMATIONS; i++) {
+        juce::String name = "Automation ";
+        name.append(juce::String(i), 5);
+        juce::String identifier = "auto";
+        identifier.append(juce::String(i), 5);
+        addParameter(automators[i].param = new juce::AudioParameterFloat(juce::ParameterID(identifier), name, 0.0, 1.0, 0.5));
+    }
+    addParameter(doNothingButUpdateTheDawLMAO = new juce::AudioParameterBool(juce::ParameterID("doNothingButUpdateTheDawLMAO"), "useless", false));
 }
 
 OOPSAudioProcessor::~OOPSAudioProcessor()
@@ -242,6 +251,13 @@ void OOPSAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
     auto globalList = xml->createNewChildElement("globalList");
     globalList->setAttribute("voiceLimit", voiceLimit);
 
+    juce::String a = "";
+    for (int i = 0; i < MAX_AUTOMATIONS; i++) {
+        a.append(juce::String(*automators[i].param, 8), 12);
+        a.append(",", 1);
+    }
+    xml->setAttribute("automations", a);
+
     copyXmlToBinary(*xml, destData);
 }
 
@@ -302,9 +318,19 @@ void OOPSAudioProcessor::setStateInformation(const void* data, int sizeInBytes) 
                 }
             }
         }
+        list.clear();
 
         if (globalList != nullptr) {
             voiceLimit = globalList->getIntAttribute("voiceLimit", NUM_VOICES);
+        }
+
+        if (xml->hasAttribute("automations")) {
+            list.addTokens(xml->getStringAttribute("automations"), ",", "");
+            int i;
+            for (i = 0; i < std::min(MAX_AUTOMATIONS, list.size()); i++) {
+                *automators[i].param = list[i].getFloatValue();
+            }
+            while (i < MAX_AUTOMATIONS) *automators[i++].param = 0.5;
         }
     }
     else {
@@ -324,6 +350,22 @@ void OOPSAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
 void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+    // TODO: Make this work fr
+    automators[0].modN = 3;
+    automators[0].autoN = 0;
+    automators[1].modN = 3;
+    automators[1].autoN = 1;
+    automators[2].modN = 3;
+    automators[2].autoN = 2;
+    automators[3].modN = 3;
+    automators[3].autoN = 3;
+    for (int i = 0; i < MAX_AUTOMATIONS; i++) {
+        if (automators[i].initialized == false) {
+            automators[i].lastValue = *automators[i].param;
+            automators[i].currentValue = automators[i].lastValue;
+            automators[i].initialized = true;
+        }
+    }
     std::vector<int> noteOnTimes;
     std::vector<int> noteOnNumbers;
     std::vector<int> noteOffTimes;
@@ -367,6 +409,8 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
     std::vector<int> panic;
     std::vector<int> notesOn;
     std::vector<int> notesOff;
+    std::vector<bool> newNotes;
+    newNotes.resize(NUM_VOICES);
     if (lastVoiceLimit != voiceLimit) {
         notes.clear();
         latestVoice = 0;
@@ -375,7 +419,16 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
         }
         lastVoiceLimit = voiceLimit;
     }
+    for (int a = 0; a < MAX_AUTOMATIONS; a++) {
+        float value = *automators[a].param;
+        int modN = automators[a].modN;
+        if (modN >= 0 && modN < processingOrder.size()) {
+            processingOrder[modN]->automate(automators[a].autoN, value);
+        }
+    }
     for (int s = 0; s < buffer.getNumSamples(); s++) {
+        notesOn.clear();
+        notesOff.clear();
         if (noteOnTimes.size() > 0) {
             while (s == noteOnTimes[stampOn]) {
                 if (notes.size() == voiceLimit) {
@@ -397,7 +450,8 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
                 }
 
                 Note n = { noteOnNumbers[stampOn], latestVoice};
-                notes.push_back(n);;
+                newNotes[notes.size()] = true;
+                notes.push_back(n);
 
                 notesOn.push_back(noteOnNumbers[stampOn]);
                 stampOn = (stampOn + 1) % noteOnTimes.size();
@@ -411,11 +465,23 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
                 if (stampOff == 0) break;
             }
         }
-
         int j = 0;
         for (int i = 0; i < processingOrder.size(); i++) {
             for (int k = 0; k < panic.size(); k++) {
                 processingOrder[i]->reset(panic[k]);
+            }
+            if (notesOff.size() > 0 && processingOrder[i]->isMaster) {
+                for (int k = 0; k < notesOff.size(); k++) {
+                    gateOff = processingOrder[i]->getCable(3);
+                    for (int l = (int)notes.size() - 1; l >= 0; l--) {
+                        if (notes[l].noteNumber == notesOff[k]) {
+                            gateOff.val[notes[l].voiceNumber][0] = 0;
+                            gateOff.val[notes[l].voiceNumber][1] = 0;
+                            if (newNotes[l] == false) notes.erase(notes.begin() + l);
+                        }
+                    }
+                    processingOrder[i]->putCable(3, gateOff);
+                }
             }
             if (notesOn.size() > 0) {
                 for (int k = 0; k < notesOn.size(); k++) {
@@ -435,19 +501,6 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
                     if (processingOrder[i]->needsReset) {
                         processingOrder[i]->reset(index);
                     }
-                }
-            }
-            if (notesOff.size() > 0 && processingOrder[i]->isMaster) {
-                for (int k = 0; k < notesOff.size(); k++) {
-                    gateOff = processingOrder[i]->getCable(3);
-                    for (int l = (int)notes.size() - 1; l >= 0; l--) {
-                        if (notes[l].noteNumber == notesOff[k]) {
-                            gateOff.val[notes[l].voiceNumber][0] = 0;
-                            gateOff.val[notes[l].voiceNumber][1] = 0;
-                            notes.erase(notes.begin() + l);
-                        }
-                    }
-                    processingOrder[i]->putCable(3, gateOff);
                 }
             }
             if (processingOrder[i]->isMaster) {
@@ -487,6 +540,12 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
         while (markedForRemoval.size() > 0) {
             actuallyRemoveModule(markedForRemoval[0]);
             markedForRemoval.erase(markedForRemoval.begin());
+        }
+    }
+    for (int i = 0; i < processingOrder.size(); i++) {
+        if (processingOrder[i]->dawDirty.size() > 0) {
+            doNothingButUpdateTheDawLMAO->setValueNotifyingHost(!doNothingButUpdateTheDawLMAO->get());
+            processingOrder[i]->dawDirty.clear();
         }
     }
 }

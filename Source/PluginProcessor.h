@@ -24,6 +24,15 @@ struct Note {
     int voiceNumber;
 };
 
+struct Automator {
+    int modN = -1;
+    int autoN = -1;
+    float lastValue = 0;
+    float currentValue = 0;
+    bool initialized = false;
+    juce::AudioParameterFloat* param;
+};
+
 class OOPSAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -97,6 +106,10 @@ private:
     int latestVoice = NUM_VOICES-1;
     std::vector<Note> notes;
     int wave = 1;
+    
+    Automator automators[MAX_AUTOMATIONS];
+    juce::AudioParameterBool* doNothingButUpdateTheDawLMAO;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OOPSAudioProcessor)
 };

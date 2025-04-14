@@ -64,10 +64,21 @@ Envelope::Envelope(double sampleRate) : ModuleComponent(sampleRate)
     cables[0].input = false;
     cables[4].input = false;
 
-    sliders[0]->setValue(0, juce::sendNotificationSync);
+    sliders[0]->setDoubleClickReturnValue(true, 0);
+    sliders[1]->setDoubleClickReturnValue(true, 0);
+    sliders[2]->setDoubleClickReturnValue(true, 1);
+    sliders[3]->setDoubleClickReturnValue(true, 0);
+    sliders[0]->setValue(0, juce::sendNotificationSync); 
     sliders[1]->setValue(0, juce::sendNotificationSync);
     sliders[2]->setValue(1, juce::sendNotificationSync);
     sliders[3]->setValue(0, juce::sendNotificationSync);
+    dawDirty.clear();
+
+    dawDirty.push_back(0);
+    dawDirty.push_back(1);
+    dawDirty.push_back(2);
+    dawDirty.push_back(3);
+    dawDirty.push_back(4);
 
     reset();
 }
@@ -139,9 +150,11 @@ void Envelope::updateControls() {
 
 void Envelope::automate(int channel, double newValue) {
     if (channel < sliders.size()) {
-        sliders[channel]->setValue(newValue, juce::sendNotificationSync);
+        int s = channel;
+        double h = floor((sliders[s]->getMaximum() - sliders[s]->getMinimum()) * (newValue) / sliders[s]->getInterval()) * sliders[s]->getInterval();
+        double v = (sliders[s]->getMinimum() + h);
+        juce::MessageManager::callAsync([this, s, v]() {sliders[s]->setValue(v, juce::sendNotificationSync); });
     }
-    else if (channel == sliders.size()) shapeButton.setToggleState(newValue >= 1, juce::sendNotificationSync);
 }
 
 void Envelope::run(int numVoices) {

@@ -65,9 +65,18 @@ Master::Master(double sampleRate) : ModuleComponent(sampleRate)
     }
     cables[0].input = false;
 
+    sliders[0]->setDoubleClickReturnValue(true, 0);
+    sliders[1]->setDoubleClickReturnValue(true, 0);
+    sliders[2]->setDoubleClickReturnValue(true, 0);
+
     sliders[0]->setValue(-6, juce::NotificationType::sendNotificationSync);
     sliders[1]->setValue(0, juce::NotificationType::sendNotificationSync);
     sliders[2]->setValue(0, juce::NotificationType::sendNotificationSync);
+    dawDirty.clear();
+
+    dawDirty.push_back(0);
+    dawDirty.push_back(1);
+    dawDirty.push_back(2);
 }
 
 Master::~Master()
@@ -140,9 +149,15 @@ void Master::run(int numVoices) {
 }
 
 void Master::automate(int channel, double newValue) {
-    if (channel < sliders.size()) {
-        sliders[channel]->setValue(newValue, juce::sendNotificationSync);
-    }
+    
+    double v;
+    double h;
+    int c, s;
+    c = channel;
+    s = channel;
+    h = floor((sliders[s]->getMaximum() - sliders[s]->getMinimum()) * (newValue) / sliders[s]->getInterval()) * sliders[s]->getInterval();
+    v = (sliders[s]->getMinimum() + h);
+    juce::MessageManager::callAsync([this, s, v]() {sliders[s]->setValue(v, juce::sendNotificationSync); });
 }
 
 juce::String Master::getState() {

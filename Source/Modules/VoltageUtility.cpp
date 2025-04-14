@@ -61,8 +61,17 @@ VoltageUtility::VoltageUtility(double sampleRate) : ModuleComponent(sampleRate)
     cables[0].input = false;
 
     for (int i = 0; i < sliders.size(); i++) {
+        sliders[i]->setDoubleClickReturnValue(true, 0);
         sliders[i]->setValue(0, juce::sendNotificationSync);
     }
+    dawDirty.clear();
+
+    dawDirty.push_back(0);
+    dawDirty.push_back(1);
+    dawDirty.push_back(2);
+    dawDirty.push_back(3);
+    dawDirty.push_back(4);
+    dawDirty.push_back(5);
 }
 
 VoltageUtility::~VoltageUtility()
@@ -144,8 +153,13 @@ void VoltageUtility::run(int numVoices) {
 }
 
 void VoltageUtility::automate(int channel, double newValue) {
+    
     if (channel < sliders.size()) {
-        sliders[channel]->setValue(newValue, juce::sendNotificationSync);
+        int s = channel;
+        double h = floor((sliders[s]->getMaximum() - sliders[s]->getMinimum()) * (newValue) / sliders[s]->getInterval()) * sliders[s]->getInterval();
+        double v = (sliders[s]->getMinimum() + h);
+        juce::MessageManager::callAsync([this, s, v]() {sliders[s]->setValue(v, juce::sendNotificationSync); });
+        controlsStale = true;
     }
 }
 
