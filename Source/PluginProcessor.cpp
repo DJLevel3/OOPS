@@ -351,14 +351,14 @@ void OOPSAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     // TODO: Make this work fr
-    automators[0].modN = 3;
+    /*automators[0].modN = 3;
     automators[0].autoN = 0;
     automators[1].modN = 3;
     automators[1].autoN = 1;
     automators[2].modN = 3;
     automators[2].autoN = 2;
     automators[3].modN = 3;
-    automators[3].autoN = 3;
+    automators[3].autoN = 3;*/
     for (int i = 0; i < MAX_AUTOMATIONS; i++) {
         if (automators[i].initialized == false) {
             automators[i].lastValue = *automators[i].param;
