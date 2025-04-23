@@ -658,3 +658,32 @@ void OOPSAudioProcessor::removeCable(int cable) {
     std::sort(plugs.begin(), plugs.end(), compareCableMapsSource);
 }
 
+juce::String OOPSAudioProcessor::getAutomationName(int controlNumber) {
+    int i = 0;
+    while (controlNumber >= processingOrder[i]->numAutomations) {
+        controlNumber -= processingOrder[i]->numAutomations;
+        i++;
+        if (i >= processingOrder.size()) return "ERROR";
+    }
+    juce::String s = "M";
+    s.append(juce::String(i), 5);
+    s.append(":A", 5);
+    s.append(juce::String(controlNumber),5);
+    return s;
+}
+
+void OOPSAudioProcessor::addAutomation(int automationNumber, int controlNumber) {
+    if (automationNumber < 0 || automationNumber > 16) return;
+    if (controlNumber < 0) {
+        automators[automationNumber].modN = -1;
+        return;
+    }
+    int i = 0;
+    while (controlNumber >= processingOrder[i]->numAutomations) {
+        controlNumber -= processingOrder[i]->numAutomations;
+        i++;
+        if (i >= processingOrder.size()) return;
+    }
+    automators[automationNumber].modN = i;
+    automators[automationNumber].autoN = controlNumber;
+}

@@ -58,6 +58,9 @@ public:
     void insertCable(int sourceM, int sourceC, int destM, int destC);
     void removeCable(int cable);
 
+    juce::String getAutomationName(int controlNumber);
+    void addAutomation(int automationNumber, int controlNumber);
+
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;

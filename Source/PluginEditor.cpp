@@ -35,7 +35,8 @@ OOPSAudioProcessorEditor::OOPSAudioProcessorEditor (OOPSAudioProcessor& p)
     addAndMakeVisible(cableDestinationModuleSlider);
     addAndMakeVisible(cableDestinationCableSlider );
     addAndMakeVisible(cableSelectSlider           );
-    
+    addAndMakeVisible(automationSelectSlider      );
+    addAndMakeVisible(automationTargetSlider      );
 
     moduleTypeSlider            .setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
     moduleSelectSlider          .setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
@@ -44,6 +45,8 @@ OOPSAudioProcessorEditor::OOPSAudioProcessorEditor (OOPSAudioProcessor& p)
     cableDestinationModuleSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
     cableDestinationCableSlider .setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
     cableSelectSlider           .setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
+    automationSelectSlider      .setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
+    automationTargetSlider      .setTextBoxStyle(juce::Slider::NoTextBox, true, 0, 0);
 
     moduleTypeSlider            .setSliderStyle(juce::Slider::LinearHorizontal);
     moduleSelectSlider          .setSliderStyle(juce::Slider::LinearHorizontal);
@@ -52,6 +55,8 @@ OOPSAudioProcessorEditor::OOPSAudioProcessorEditor (OOPSAudioProcessor& p)
     cableDestinationModuleSlider.setSliderStyle(juce::Slider::LinearHorizontal);
     cableDestinationCableSlider .setSliderStyle(juce::Slider::LinearHorizontal);
     cableSelectSlider           .setSliderStyle(juce::Slider::LinearHorizontal);
+    automationSelectSlider      .setSliderStyle(juce::Slider::LinearHorizontal);
+    automationTargetSlider      .setSliderStyle(juce::Slider::LinearHorizontal);
 
     moduleTypeSlider            .onValueChange = [this] { updatePanel(false); };
     moduleSelectSlider          .onValueChange = [this] { updatePanel(false); };
@@ -60,6 +65,8 @@ OOPSAudioProcessorEditor::OOPSAudioProcessorEditor (OOPSAudioProcessor& p)
     cableDestinationModuleSlider.onValueChange = [this] { updatePanel(false); };
     cableDestinationCableSlider .onValueChange = [this] { updatePanel(false); };
     cableSelectSlider           .onValueChange = [this] { updatePanel(false); };
+    automationSelectSlider      .onValueChange = [this] { updatePanel(false); };
+    automationTargetSlider      .onValueChange = [this] { updatePanel(false); };
     
     addAndMakeVisible(labelModuleTypeSlider            );
     addAndMakeVisible(labelModuleSelectSlider          );
@@ -68,6 +75,8 @@ OOPSAudioProcessorEditor::OOPSAudioProcessorEditor (OOPSAudioProcessor& p)
     addAndMakeVisible(labelCableDestinationModuleSlider);
     addAndMakeVisible(labelCableDestinationCableSlider );
     addAndMakeVisible(labelCableSelectSlider           );
+    addAndMakeVisible(labelAutomationSelectSlider      );
+    addAndMakeVisible(labelAutomationTargetSlider      );
 
     labelModuleTypeSlider            .attachToComponent(&moduleTypeSlider            , false);
     labelModuleSelectSlider          .attachToComponent(&moduleSelectSlider          , false);
@@ -76,6 +85,8 @@ OOPSAudioProcessorEditor::OOPSAudioProcessorEditor (OOPSAudioProcessor& p)
     labelCableDestinationModuleSlider.attachToComponent(&cableDestinationModuleSlider, false);
     labelCableDestinationCableSlider .attachToComponent(&cableDestinationCableSlider , false);
     labelCableSelectSlider           .attachToComponent(&cableSelectSlider           , false);
+    labelAutomationSelectSlider      .attachToComponent(&automationSelectSlider      , false);
+    labelAutomationTargetSlider      .attachToComponent(&automationTargetSlider      , false);
 
     labelModuleTypeSlider            .setJustificationType(juce::Justification::bottomLeft);
     labelModuleSelectSlider          .setJustificationType(juce::Justification::bottomLeft);
@@ -84,20 +95,26 @@ OOPSAudioProcessorEditor::OOPSAudioProcessorEditor (OOPSAudioProcessor& p)
     labelCableDestinationModuleSlider.setJustificationType(juce::Justification::bottomLeft);
     labelCableDestinationCableSlider .setJustificationType(juce::Justification::bottomLeft);
     labelCableSelectSlider           .setJustificationType(juce::Justification::bottomLeft);
+    labelAutomationSelectSlider      .setJustificationType(juce::Justification::bottomLeft);
+    labelAutomationTargetSlider      .setJustificationType(juce::Justification::bottomLeft);
 
     addAndMakeVisible(addModuleButton   );
-    addAndMakeVisible(moveModuleButton  );
+    //addAndMakeVisible(moveModuleButton  );
     addAndMakeVisible(deleteModuleButton);
     addAndMakeVisible(addCableButton    );
     addAndMakeVisible(deleteCableButton );
+    addAndMakeVisible(assignAutomationButton);
+    addAndMakeVisible(removeAutomationButton);
     addModuleButton   .setButtonText("Add Module");
-    moveModuleButton  .setButtonText("Move Module To End");
+    //moveModuleButton  .setButtonText("Move Module To End");
     deleteModuleButton.setButtonText("Delete Module");
     addCableButton    .setButtonText("Add Cable");
     deleteCableButton .setButtonText("Delete Cable");
+    assignAutomationButton.setButtonText("Assign Automation");
+    removeAutomationButton.setButtonText("Remove Automation");
 
     addModuleButton   .onClick = [this] { audioProcessor.insertNewModule(-1, ModuleOrder.at((int)moduleTypeSlider.getValue())); updatePanel(false); };
-    moveModuleButton  .onClick = [this] { audioProcessor.moveModule(-1, (int)moduleSelectSlider.getValue() + 1); updatePanel(false); };
+    //moveModuleButton  .onClick = [this] { audioProcessor.moveModule(-1, (int)moduleSelectSlider.getValue() + 1); updatePanel(false); };
     deleteModuleButton.onClick = [this] { audioProcessor.removeModule((int)moduleSelectSlider.getValue() + 1); updatePanel(false); };
     addCableButton    .onClick = [this] { audioProcessor.insertCable(
         (int)cableSourceModuleSlider.getValue(),
@@ -106,6 +123,9 @@ OOPSAudioProcessorEditor::OOPSAudioProcessorEditor (OOPSAudioProcessor& p)
         (int)cableDestinationCableSlider.getValue()
     ); updatePanel(false); };
     deleteCableButton .onClick = [this] {audioProcessor.removeCable((int)cableSelectSlider.getValue()); updatePanel(false); };
+
+    assignAutomationButton.onClick = [this] {audioProcessor.addAutomation(automationSelectSlider.getValue(), automationTargetSlider.getValue()); updatePanel(false); };
+    removeAutomationButton.onClick = [this] {audioProcessor.addAutomation(automationSelectSlider.getValue(), -1); updatePanel(false); };
 
     updatePanel(true);
 }
@@ -131,12 +151,18 @@ void OOPSAudioProcessorEditor::paint (juce::Graphics& g)
 }
 
 void OOPSAudioProcessorEditor::updatePanel(bool initialize) {
+    int nAuto = audioProcessor.processingOrder[0]->numAutomations;
+    for (int i = 1; i < audioProcessor.processingOrder.size(); i++) {
+        nAuto += audioProcessor.processingOrder[i]->numAutomations;
+    }
+
     moduleTypeSlider.setRange(0, ModuleOrder.size()-1, 1);
     moduleSelectSlider.setRange(0, audioProcessor.processingOrder.size() - 2, 1);
     cableSourceModuleSlider.setRange(0, audioProcessor.processingOrder.size() - 1, 1);
     cableDestinationModuleSlider.setRange(0, audioProcessor.processingOrder.size() - 1, 1);
     cableSelectSlider.setRange(0, audioProcessor.plugs.size()-1, 1);
-
+    automationSelectSlider.setRange(0, 15, 1);
+    automationTargetSlider.setRange(0, nAuto - 1, 1);
     if (initialize) {
         cableSourceCableSlider.setRange(0, audioProcessor.processingOrder[0]->getNumCables(), 1);
         cableDestinationCableSlider.setRange(0, audioProcessor.processingOrder[0]->getNumCables(), 1);
@@ -150,7 +176,7 @@ void OOPSAudioProcessorEditor::updatePanel(bool initialize) {
         cableSelectSlider           .setValue(0, juce::dontSendNotification);
         
         addModuleButton   .setToggleState(false, juce::dontSendNotification);
-        moveModuleButton  .setToggleState(false, juce::dontSendNotification);
+        //moveModuleButton  .setToggleState(false, juce::dontSendNotification);
         deleteModuleButton.setToggleState(false, juce::dontSendNotification);
         addCableButton    .setToggleState(false, juce::dontSendNotification);
         deleteCableButton .setToggleState(false, juce::dontSendNotification);
@@ -164,37 +190,37 @@ void OOPSAudioProcessorEditor::updatePanel(bool initialize) {
 
     s = "Type: ";
     s.append(ModuleStrings.at(ModuleOrder.at((int)moduleTypeSlider.getValue())), 128);
-    labelModuleTypeSlider.setText(s, juce::dontSendNotification);
+    labelModuleTypeSlider.setText(s, juce::sendNotificationAsync);
 
     s = "Module: ";
     s.append(juce::String((int)moduleSelectSlider.getValue() + 1), 128);
     s.append(" - ", 5);
     s.append(ModuleStrings.at(audioProcessor.processingOrder[(int)moduleSelectSlider.getValue() + 1]->moduleType), 128);
-    labelModuleSelectSlider.setText(s, juce::dontSendNotification);
+    labelModuleSelectSlider.setText(s, juce::sendNotificationAsync);
 
     s = "S: M";
     s.append(juce::String((int)cableSourceModuleSlider.getValue()), 128);
     s.append(" - ", 5);
     s.append(ModuleStrings.at(audioProcessor.processingOrder[(int)cableSourceModuleSlider.getValue()]->moduleType), 128);
-    labelCableSourceModuleSlider.setText(s, juce::dontSendNotification);
+    labelCableSourceModuleSlider.setText(s, juce::sendNotificationAsync);
 
     s = "S: C";
     s.append(juce::String((int)cableSourceCableSlider.getValue()), 128);
     s.append(" - ", 5);
     s.append(audioProcessor.processingOrder[(int)cableSourceModuleSlider.getValue()]->getCableName((int)cableSourceCableSlider.getValue()), 128);
-    labelCableSourceCableSlider.setText(s, juce::dontSendNotification);
+    labelCableSourceCableSlider.setText(s, juce::sendNotificationAsync);
 
     s = "D: M";
     s.append(juce::String((int)cableDestinationModuleSlider.getValue()), 128);
     s.append(" - ", 5);
     s.append(ModuleStrings.at(audioProcessor.processingOrder[(int)cableDestinationModuleSlider.getValue()]->moduleType), 128);
-    labelCableDestinationModuleSlider.setText(s, juce::dontSendNotification);
+    labelCableDestinationModuleSlider.setText(s, juce::sendNotificationAsync);
 
     s = "D: C";
     s.append(juce::String((int)cableDestinationCableSlider.getValue()), 128);
     s.append(" - ", 5);
     s.append(audioProcessor.processingOrder[(int)cableDestinationModuleSlider.getValue()]->getCableName((int)cableDestinationCableSlider.getValue()), 128);
-    labelCableDestinationCableSlider.setText(s, juce::dontSendNotification);
+    labelCableDestinationCableSlider.setText(s, juce::sendNotificationAsync);
 
     s = "Cable: ";
     s.append(juce::String((int)cableSelectSlider.getValue()), 128);
@@ -206,7 +232,15 @@ void OOPSAudioProcessorEditor::updatePanel(bool initialize) {
     s.append(juce::String(audioProcessor.plugs[(int)cableSelectSlider.getValue()].destM), 128);
     s.append(":", 3);
     s.append(juce::String(audioProcessor.plugs[(int)cableSelectSlider.getValue()].destC), 128);
-    labelCableSelectSlider.setText(s, juce::dontSendNotification);
+    labelCableSelectSlider.setText(s, juce::sendNotificationAsync);
+
+    s = "Automation ";
+    s.append(juce::String((int)automationSelectSlider.getValue()), 128);
+    labelAutomationSelectSlider.setText(s, juce::sendNotificationAsync);
+
+    s = "Target: ";
+    s.append(audioProcessor.getAutomationName(automationTargetSlider.getValue()), 128);
+    labelAutomationTargetSlider.setText(s, juce::sendNotificationAsync);
 }
 
 void OOPSAudioProcessorEditor::resized()
@@ -242,8 +276,8 @@ void OOPSAudioProcessorEditor::resized()
     panel.removeFromTop(20);
 
     moduleSelectSlider          .setBounds(panel.removeFromTop(40).removeFromBottom(20));
-    moveModuleButton.setBounds(panel.removeFromTop(20));
-    panel.removeFromTop(5);
+    //moveModuleButton.setBounds(panel.removeFromTop(20));
+    //panel.removeFromTop(5);
     deleteModuleButton.setBounds(panel.removeFromTop(20));
     panel.removeFromTop(20);
 
@@ -256,5 +290,12 @@ void OOPSAudioProcessorEditor::resized()
 
     cableSelectSlider           .setBounds(panel.removeFromTop(40).removeFromBottom(20));
     deleteCableButton .setBounds(panel.removeFromTop(20));
+    panel.removeFromTop(20);
+
+    automationSelectSlider.setBounds(panel.removeFromTop(40).removeFromBottom(20));
+    automationTargetSlider.setBounds(panel.removeFromTop(40).removeFromBottom(20));
+    auto side = panel.removeFromTop(20);
+    assignAutomationButton.setBounds(side.removeFromLeft(side.getWidth() / 2));
+    removeAutomationButton.setBounds(side);
     panel.removeFromTop(20);
 }

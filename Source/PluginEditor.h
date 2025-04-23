@@ -38,20 +38,26 @@ private:
     juce::Slider     cableDestinationModuleSlider;
     juce::Slider     cableDestinationCableSlider;
     juce::Slider     cableSelectSlider;
+    juce::Slider     automationSelectSlider;
+    juce::Slider     automationTargetSlider;
 
-    juce::Label labelModuleTypeSlider;
-    juce::Label labelModuleSelectSlider;
-    juce::Label labelCableSourceModuleSlider;
-    juce::Label labelCableSourceCableSlider;
-    juce::Label labelCableDestinationModuleSlider;
-    juce::Label labelCableDestinationCableSlider;
-    juce::Label labelCableSelectSlider;
+    juce::Label      labelModuleTypeSlider;
+    juce::Label      labelModuleSelectSlider;
+    juce::Label      labelCableSourceModuleSlider;
+    juce::Label      labelCableSourceCableSlider;
+    juce::Label      labelCableDestinationModuleSlider;
+    juce::Label      labelCableDestinationCableSlider;
+    juce::Label      labelCableSelectSlider;
+    juce::Label      labelAutomationSelectSlider;
+    juce::Label      labelAutomationTargetSlider;
 
     juce::TextButton addModuleButton;
-    juce::TextButton moveModuleButton;
+    //juce::TextButton moveModuleButton;
     juce::TextButton deleteModuleButton;
     juce::TextButton addCableButton;
     juce::TextButton deleteCableButton;
+    juce::TextButton assignAutomationButton;
+    juce::TextButton removeAutomationButton;
 
     int oldPOSize = -1;
 
