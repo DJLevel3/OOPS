@@ -11,6 +11,8 @@
     <GROUP id="{71F44391-4904-A138-0E6D-B24D6D7C84DF}" name="Source">
       <FILE id="iAT9GI" name="Utility.h" compile="0" resource="0" file="Source/Utility.h"/>
       <GROUP id="{0B7E0564-8DC3-53BB-9377-2209019064D3}" name="Modules">
+        <FILE id="hiiEzu" name="BasicFilter.cpp" compile="1" resource="0" file="Source/Modules/BasicFilter.cpp"/>
+        <FILE id="BnK5hi" name="BasicFilter.h" compile="0" resource="0" file="Source/Modules/BasicFilter.h"/>
         <FILE id="MWTfEa" name="Envelope.cpp" compile="1" resource="0" file="Source/Modules/Envelope.cpp"/>
         <FILE id="CAlixg" name="Envelope.h" compile="0" resource="0" file="Source/Modules/Envelope.h"/>
         <FILE id="sDjieO" name="HarmonicOscillator.cpp" compile="1" resource="0"

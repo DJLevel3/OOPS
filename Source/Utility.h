@@ -36,6 +36,7 @@ enum ModuleType {
     RingModType,
     SwitchType,
     VoltageUtilityType,
+    BasicFilterType,
 
     // THIS MUST BE LAST
     UndefinedType
@@ -47,7 +48,8 @@ const std::map<int, ModuleType> ModuleOrder = {
     {1, HarmonicOscillatorType},
     {2, RingModType},
     {3, EnvelopeType},
-    {4, VoltageUtilityType}
+    {4, VoltageUtilityType},
+    {5, BasicFilterType},
 };
 
 const std::map<ModuleType, juce::String> ModuleStrings = {
@@ -57,5 +59,6 @@ const std::map<ModuleType, juce::String> ModuleStrings = {
     {EnvelopeType, "Envelope"},
     {RingModType, "Ring Mod"},
     {SwitchType, "Switch"},
-    {VoltageUtilityType, "Utility"}
+    {VoltageUtilityType, "Utility"},
+    {BasicFilterType, "Filter"}
 };

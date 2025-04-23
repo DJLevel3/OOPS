@@ -17,3 +17,4 @@
 #include "RingMod.h"
 #include "Switch.h"
 #include "VoltageUtility.h"
+#include "BasicFilter.h"

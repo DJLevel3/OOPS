@@ -584,6 +584,9 @@ int OOPSAudioProcessor::insertNewModule(int modDest, ModuleType modType) {
     case VoltageUtilityType:
         m = new VoltageUtility{ sampleRateMemory };
         break;
+    case BasicFilterType:
+        m = new BasicFilter{ sampleRateMemory };
+        break;
     default:
         return -1;
     }
