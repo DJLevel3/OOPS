@@ -9,6 +9,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#define DEMO
+
 //==============================================================================
 OOPSAudioProcessor::OOPSAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -22,6 +24,61 @@ OOPSAudioProcessor::OOPSAudioProcessor()
                        )
 #endif
 {
+#ifdef DEMO
+    std::vector<ModuleType> initModuleTypes = {
+        MasterType,             // 0
+        OscillatorType,         // 1
+        HarmonicOscillatorType, // 2
+        BasicFilterType,        // 3
+        SwitchType,             // 4
+        HarmonicOscillatorType, // 5
+        HarmonicOscillatorType, // 6
+        RingModType,            // 7
+        OscillatorType,         // 8
+        HarmonicOscillatorType, // 9
+        SwitchType,             // 10
+        MixerType,              // 11
+        EnvelopeType,           // 12
+    };
+
+    std::vector<CableMap> initCables = {
+        // Master v/oct and trigger
+        { 0, 2, 1, 2 },
+        { 0, 2, 2, 2 },
+        { 0, 2, 5, 2 },
+        { 0, 2, 6, 2 },
+        { 0, 2, 8, 2 },
+        { 0, 2, 9, 2 },
+        { 0, 3, 1, 3 },
+        { 0, 3, 2, 3 },
+        { 0, 3, 5, 3 },
+        { 0, 3, 6, 3 },
+        { 0, 3, 8, 3 },
+        { 0, 3, 9, 3 },
+        { 0, 3, 12, 3 },
+
+        // Filtered Saw
+        { 1, 0, 4, 3 },
+        { 2, 0, 3, 1 },
+        { 3, 0, 4, 1 },
+        { 4, 2, 11, 1 },
+
+        // Ring Mod/FM
+        { 5, 0, 7, 2 },
+        { 5, 0, 6, 4 },
+        { 6, 0, 7, 1 },
+        { 7, 0, 11, 2 },
+
+        // Lissajous
+        { 8, 0, 10, 3 },
+        { 9, 0, 10, 1 },
+        { 10, 2, 11, 3 },
+
+        // Mixer/Output
+        { 11, 0, 12, 1 },
+        { 12, 0, 0, 1 }
+    };
+#else
     std::vector<ModuleType> initModuleTypes = {
         MasterType,
         HarmonicOscillatorType,
@@ -46,6 +103,7 @@ OOPSAudioProcessor::OOPSAudioProcessor()
         { 4, 0, 5, 2 },
         { 5, 0, 0, 1 },
     };
+#endif
     stateInit(initModuleTypes, initCables);
 
     for (int i = 0; i < MAX_AUTOMATIONS; i++) {
@@ -53,9 +111,77 @@ OOPSAudioProcessor::OOPSAudioProcessor()
         name.append(juce::String(i), 5);
         juce::String identifier = "auto";
         identifier.append(juce::String(i), 5);
-        addParameter(automators[i].param = new juce::AudioParameterFloat(juce::ParameterID(identifier), name, 0.0, 1.0, 0.5));
+        addParameter(automators[i].param = new juce::AudioParameterFloat(juce::ParameterID(identifier), name, juce::NormalisableRange<float>(0, 1, 0.0001), 0.5));
     }
     addParameter(doNothingButUpdateTheDawLMAO = new juce::AudioParameterBool(juce::ParameterID("doNothingButUpdateTheDawLMAO"), "useless", false));
+
+#ifdef DEMO
+    int i = 0;
+    // Lissajous Waveform X
+    automators[0].modN = 8;
+    automators[0].autoN = 4;
+
+    // Lissajous Waveform Y
+    automators[1].modN = 9;
+    automators[1].autoN = 4;
+
+    // Lissajous Pulse Width Y
+    automators[2].modN = 9;
+    automators[2].autoN = 5;
+
+    // Lissajous Harmonic Numerator
+    automators[3].modN = 9;
+    automators[3].autoN = 0;
+
+    // Lissajous Harmonic Denominator
+    automators[4].modN = 9;
+    automators[4].autoN = 1;
+
+    // RM Strength
+    automators[5].modN = 7;
+    automators[5].autoN = 0;
+
+    // FM Strength
+    automators[6].modN = 6;
+    automators[6].autoN = 3;
+
+    // Carrier Harmonic Numerator
+    automators[7].modN = 6;
+    automators[7].autoN = 0;
+
+    // Modulator Harmonic Numerator
+    automators[8].modN = 5;
+    automators[8].autoN = 0;
+
+    // Modulator Harmonic Denominator
+    automators[9].modN = 5;
+    automators[9].autoN = 1;
+
+    // Filter Waveform
+    automators[10].modN = 2;
+    automators[10].autoN = 4;
+
+    // Filter Cutoff
+    automators[11].modN = 3;
+    automators[11].autoN = 0;
+
+    // Filter Resonance
+    automators[12].modN = 3;
+    automators[12].autoN = 1;
+
+    // Lissajous
+    automators[13].modN = 11;
+    automators[13].autoN = 4;
+
+    // Filter
+    automators[14].modN = 11;
+    automators[14].autoN = 2;
+
+    // FM/RM
+    automators[15].modN = 11;
+    automators[15].autoN = 3;
+
+#endif
 }
 
 OOPSAudioProcessor::~OOPSAudioProcessor()
@@ -257,6 +383,14 @@ void OOPSAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
         a.append(",", 1);
     }
     xml->setAttribute("automations", a);
+    a = "";
+    for (int i = 0; i < MAX_AUTOMATIONS; i++) {
+        a.append(juce::String(automators[i].modN), 12);
+        a.append(":", 1);
+        a.append(juce::String(automators[i].autoN), 12);
+        a.append(",", 1);
+    }
+    xml->setAttribute("automationValues", a);
 
     copyXmlToBinary(*xml, destData);
 }
@@ -324,13 +458,29 @@ void OOPSAudioProcessor::setStateInformation(const void* data, int sizeInBytes) 
             voiceLimit = globalList->getIntAttribute("voiceLimit", NUM_VOICES);
         }
 
+        int i = 0;
         if (xml->hasAttribute("automations")) {
             list.addTokens(xml->getStringAttribute("automations"), ",", "");
-            int i;
             for (i = 0; i < std::min(MAX_AUTOMATIONS, list.size()); i++) {
                 *automators[i].param = list[i].getFloatValue();
             }
-            while (i < MAX_AUTOMATIONS) *automators[i++].param = 0.5;
+        }
+        while (i < MAX_AUTOMATIONS) *automators[i++].param = 0.5;
+
+        list.clear();
+        i = 0;
+        if (xml->hasAttribute("automationValues")) {
+            list.addTokens(xml->getStringAttribute("automationValues"), ",", "");
+            for (i = 0; i < std::min(MAX_AUTOMATIONS, list.size()); i++) {
+                juce::StringArray sublist;
+                sublist.addTokens(list[i], ":", "");
+                automators[i].modN = sublist[0].getIntValue();
+                automators[i].autoN = sublist[1].getIntValue();
+            }
+        }
+        while (i < MAX_AUTOMATIONS) {
+            automators[i].modN = -1;
+            automators[i++].autoN = 0;
         }
     }
     else {
@@ -350,18 +500,9 @@ void OOPSAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
 void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    // TODO: Make this work fr
-    /*automators[0].modN = 3;
-    automators[0].autoN = 0;
-    automators[1].modN = 3;
-    automators[1].autoN = 1;
-    automators[2].modN = 3;
-    automators[2].autoN = 2;
-    automators[3].modN = 3;
-    automators[3].autoN = 3;*/
     for (int i = 0; i < MAX_AUTOMATIONS; i++) {
         if (automators[i].initialized == false) {
-            automators[i].lastValue = *automators[i].param;
+            automators[i].lastValue = automators[i].param->get();
             automators[i].currentValue = automators[i].lastValue;
             automators[i].initialized = true;
         }
@@ -420,13 +561,17 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
         lastVoiceLimit = voiceLimit;
     }
     for (int a = 0; a < MAX_AUTOMATIONS; a++) {
-        float value = *automators[a].param;
-        int modN = automators[a].modN;
-        if (modN >= 0 && modN < processingOrder.size()) {
-            processingOrder[modN]->automate(automators[a].autoN, value);
-        }
+        float value = automators[a].param->get();
+        automators[a].currentValue = value;
     }
-    for (int s = 0; s < buffer.getNumSamples(); s++) {
+    double maxS = buffer.getNumSamples();
+    for (int s = 0; s < maxS; s++) {
+        for (int a = 0; a < MAX_AUTOMATIONS; a++) {
+            int modN = automators[a].modN;
+            if (modN >= 0 && modN < processingOrder.size() && (automators[a].lastValue != automators[a].currentValue || s == 0)) {
+                processingOrder[modN]->automate(automators[a].autoN, 1.00001 * (automators[a].lastValue + (automators[a].currentValue - automators[a].lastValue) * (s / maxS)));
+            }
+        }
         notesOn.clear();
         notesOff.clear();
         if (noteOnTimes.size() > 0) {
@@ -509,6 +654,7 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
                     c.val[voice][0] = buffer.getSample(0, s);
                     c.val[voice][1] = buffer.getSample(1, s);
                 }
+                processingOrder[i]->putCable(0, c);
             }
             processingOrder[i]->run(voiceLimit);
             if (j >= plugs.size()) continue;
@@ -543,10 +689,17 @@ void OOPSAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
         }
     }
     for (int i = 0; i < processingOrder.size(); i++) {
+        bool dirty = true;
         if (processingOrder[i]->dawDirty.size() > 0) {
-            doNothingButUpdateTheDawLMAO->setValueNotifyingHost(!doNothingButUpdateTheDawLMAO->get());
+            if (dirty) {
+                doNothingButUpdateTheDawLMAO->setValueNotifyingHost(!doNothingButUpdateTheDawLMAO->get());
+                dirty = false;
+            }
             processingOrder[i]->dawDirty.clear();
         }
+    }
+    for (int i = 0; i < MAX_AUTOMATIONS; i++) {
+        automators[i].lastValue = automators[i].param->get();
     }
 }
 
@@ -586,6 +739,15 @@ int OOPSAudioProcessor::insertNewModule(int modDest, ModuleType modType) {
         break;
     case BasicFilterType:
         m = new BasicFilter{ sampleRateMemory };
+        break;
+    case SwitchType:
+        m = new Switch{ sampleRateMemory };
+        break;
+    case VCSwitchType:
+        m = new VCSwitch { sampleRateMemory };
+        break;
+    case MixerType:
+        m = new Mixer{ sampleRateMemory };
         break;
     default:
         return -1;

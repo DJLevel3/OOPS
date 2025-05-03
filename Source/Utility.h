@@ -10,10 +10,9 @@
 
 #pragma once
 
+#include <JuceHeader.h>
 #include <vector>
 #include <map>
-#include <string>
-#include <algorithm>
 
 #define NUM_VOICES 8
 
@@ -37,6 +36,8 @@ enum ModuleType {
     SwitchType,
     VoltageUtilityType,
     BasicFilterType,
+    VCSwitchType,
+    MixerType,
 
     // THIS MUST BE LAST
     UndefinedType
@@ -48,8 +49,11 @@ const std::map<int, ModuleType> ModuleOrder = {
     {1, HarmonicOscillatorType},
     {2, RingModType},
     {3, EnvelopeType},
-    {4, VoltageUtilityType},
-    {5, BasicFilterType},
+    {4, BasicFilterType},
+    {5, VoltageUtilityType},
+    {6, SwitchType},
+    {7, VCSwitchType},
+    {8, MixerType},
 };
 
 const std::map<ModuleType, juce::String> ModuleStrings = {
@@ -60,5 +64,7 @@ const std::map<ModuleType, juce::String> ModuleStrings = {
     {RingModType, "Ring Mod"},
     {SwitchType, "Switch"},
     {VoltageUtilityType, "Utility"},
-    {BasicFilterType, "Filter"}
+    {BasicFilterType, "Filter"},
+    {VCSwitchType, "Relay"},
+    {MixerType, "Mixer"}
 };

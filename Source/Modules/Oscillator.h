@@ -27,6 +27,10 @@ public:
     void updateControls() override;
     void run(int numVoices) override;
     void automate(int channel, double newValue);
+    std::string getCableName(int cableNumber) override {
+        if (cableNumber >= cableNames.size()) return "";
+        return cableNames[cableNumber];
+    }
 
     juce::String getState();
     void setState(juce::String state);
@@ -43,7 +47,7 @@ protected:
     bool mono = false;
 private:
     std::string controlNames[6] = { "Transpose", "Tune", "Phase", "Waveform", "Shape", "FM" };
-    std::vector<std::string> cableNames = { "Output", "Input", "Pitch", "PWM", "", "", "", "FM"};
+    std::vector<std::string> cableNames = { "Output", "Input", "Pitch", "PWM", "FM"};
     std::vector<juce::Slider*> sliders;
     std::vector<juce::Label*> sliderLabels;
     std::string sliderNames[6] = { "Pitch", "Detune", "Phase", "FM", "Wave", "Shape" };

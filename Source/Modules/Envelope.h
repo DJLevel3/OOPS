@@ -27,6 +27,10 @@ public:
     void updateControls() override;
     void run(int numVoices) override;
     void automate(int channel, double newValue);
+    std::string getCableName(int cableNumber) override {
+        if (cableNumber >= cableNames.size()) return "";
+        return cableNames[cableNumber];
+    }
 
     juce::String getState();
     void setState(juce::String state);

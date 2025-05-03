@@ -1,8 +1,8 @@
 /*
   ==============================================================================
 
-    Oscillator.h
-    Created: 16 Mar 2025 11:47:04am
+    VCSwitch.h
+    Created: 16 Mar 2025 11:48:31am
     Author:  DJ_Level_3
 
   ==============================================================================
@@ -16,11 +16,11 @@
 //==============================================================================
 /*
 */
-class HarmonicOscillator : public ModuleComponent
+class VCSwitch : public ModuleComponent
 {
 public:
-    HarmonicOscillator(double sampleRate);
-    ~HarmonicOscillator() override;
+    VCSwitch(double sampleRate);
+    ~VCSwitch() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
@@ -40,17 +40,9 @@ public:
     }
     void reset(int voice) override;
 protected:
-    double basePitch[2] = { 261.63, 261.63 };
-    double frequency[NUM_VOICES][2] = { 0, 0 };
-    double phase[NUM_VOICES][2] = { 0, 0 };
+    double scale[2] = { 0,0 };
     bool controlsStale = true;
-    bool mono = false;
 private:
-    std::string controlNames[6] = { "Numerator", "Denominator", "Phase", "Waveform", "Shape", "FM" };
-    std::vector<std::string> cableNames = { "Output", "Input", "Pitch", "PWM", "FM" };
-    std::vector<juce::Slider*> sliders;
-    std::vector<juce::Label*> sliderLabels;
-    std::string sliderNames[6] = { "Numerator", "Denominator", "Phase", "FM", "Wave", "Shape" };
-    juce::TextButton stereoButton;
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HarmonicOscillator)
+    std::vector<std::string> cableNames = { "Mix Out", "Switch In", "NC In", "NC Out", "NO In", "NO Out" };
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VCSwitch)
 };

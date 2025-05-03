@@ -78,7 +78,7 @@ Oscillator::Oscillator(double sampleRate) : ModuleComponent(sampleRate)
         true,
         true
     };
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < cableNames.size(); i++) {
         cables.push_back(cable);
         cables[i].name = cableNames[i];
     }
@@ -184,7 +184,7 @@ void Oscillator::run(int numVoices) {
             }
             else {
                 // Update internal state values
-                frequency[voice][c] = basePitch[c] * std::pow(2, cables[2].val[voice][c]) * (cables[7].val[voice][c] * controls[5].val[c] + 1) * timeStep * TAU;
+                frequency[voice][c] = basePitch[c] * std::pow(2, cables[2].val[voice][c]) * (cables[4].val[voice][c] * controls[5].val[c] + 1) * timeStep * TAU;
                 phase[voice][c] = std::fmod(phase[voice][c] + frequency[voice][c], TAU);
 
                 int w = (int)controls[3].val[c];

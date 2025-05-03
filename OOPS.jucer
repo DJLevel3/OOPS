@@ -21,6 +21,8 @@
               file="Source/Modules/HarmonicOscillator.h"/>
         <FILE id="uyrtxR" name="Master.cpp" compile="1" resource="0" file="Source/Modules/Master.cpp"/>
         <FILE id="lZiRjz" name="Master.h" compile="0" resource="0" file="Source/Modules/Master.h"/>
+        <FILE id="dpPYEQ" name="Mixer.cpp" compile="1" resource="0" file="Source/Modules/Mixer.cpp"/>
+        <FILE id="UnBYEd" name="Mixer.h" compile="0" resource="0" file="Source/Modules/Mixer.h"/>
         <FILE id="Riyz7L" name="ModuleComponent.cpp" compile="1" resource="0"
               file="Source/Modules/ModuleComponent.cpp"/>
         <FILE id="EHpaJh" name="ModuleComponent.h" compile="0" resource="0"
@@ -32,6 +34,8 @@
         <FILE id="h6Ose0" name="RingMod.h" compile="0" resource="0" file="Source/Modules/RingMod.h"/>
         <FILE id="WglVxh" name="Switch.cpp" compile="1" resource="0" file="Source/Modules/Switch.cpp"/>
         <FILE id="drzUQu" name="Switch.h" compile="0" resource="0" file="Source/Modules/Switch.h"/>
+        <FILE id="B1x49c" name="VCSwitch.cpp" compile="1" resource="0" file="Source/Modules/VCSwitch.cpp"/>
+        <FILE id="LnvhvL" name="VCSwitch.h" compile="0" resource="0" file="Source/Modules/VCSwitch.h"/>
         <FILE id="YwzWxs" name="VoltageUtility.cpp" compile="1" resource="0"
               file="Source/Modules/VoltageUtility.cpp"/>
         <FILE id="plddoj" name="VoltageUtility.h" compile="0" resource="0"
@@ -107,5 +111,26 @@
         <MODULEPATH id="juce_gui_extra" path="../../../../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_dsp" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="C:\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="C:\JUCE\modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
   </EXPORTFORMATS>
 </JUCERPROJECT>

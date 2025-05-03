@@ -18,3 +18,5 @@
 #include "Switch.h"
 #include "VoltageUtility.h"
 #include "BasicFilter.h"
+#include "VCSwitch.h"
+#include "Mixer.h"

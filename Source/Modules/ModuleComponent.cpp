@@ -56,7 +56,9 @@ CableConnection ModuleComponent::getCable(int index) {
 bool ModuleComponent::putCable(int index, CableConnection input) {
     if (index >= cables.size() || index < 0) return false;
     //if (cables[index].input == false) return false;
+    std::string cableName = cables[index].name;
     cables[index] = input;
+    cables[index].name = cableName;
     return true;
 }
 

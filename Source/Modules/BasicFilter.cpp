@@ -14,7 +14,7 @@
 //==============================================================================
 BasicFilter::BasicFilter(double sampleRate) : ModuleComponent(sampleRate)
 {
-    numAutomations = 5;
+    numAutomations = 4;
     moduleType = BasicFilterType;
 
     for (int i = 0; i < 4; i++) {
@@ -22,7 +22,7 @@ BasicFilter::BasicFilter(double sampleRate) : ModuleComponent(sampleRate)
         sliderLabels.push_back(new juce::Label);
         addAndMakeVisible(sliders[i]);
         addAndMakeVisible(sliderLabels[i]);
-        sliders[i]->setRange(0.0, 1.0, 0.01);
+        sliders[i]->setRange(0.0, 1.0, 0.0001);
         sliders[i]->setValue(0);
         sliders[i]->setSliderStyle(juce::Slider::LinearBarVertical);
         sliders[i]->setDoubleClickReturnValue(true, 0);
@@ -117,6 +117,8 @@ void BasicFilter::paint(juce::Graphics& g)
 }
 
 void BasicFilter::updateControls() {
+    dawDirty.clear();
+    dawDirty.push_back(0);
     controlsStale = false;
 }
 
@@ -169,11 +171,11 @@ void BasicFilter::run(int numVoices) {
 
     for (int v = 0; v < numVoices; v++) {
         for (int c = 0; c < 2; c++) {
-            double cut = controls[0].val[c] + controls[2].val[c] * cables[2].val[v][c];
+            double cut = sqrt(juce::jmax(juce::jmin(((controls[0].val[c] * controls[0].val[c]) + controls[2].val[c] * cables[2].val[v][c]) * 48000 / sampleRate, 0.9999), 0.));
             double res = controls[1].val[c] + controls[3].val[c] * cables[3].val[v][c];
 
             // filter that mofo
-            buf0[v][c] += cut * (cables[1].val[v][c] - buf0[v][c] + (buf0[v][c] - (buf1[v][c])) * (res + res / (1 - juce::jmin(cut, 0.9999))));
+            buf0[v][c] += cut * (cables[1].val[v][c] - buf0[v][c] + juce::jmax(juce::jmin(((buf0[v][c] - (buf1[v][c])) * (res + res / (1 - cut))), 2.), -2.));
             buf1[v][c] += cut * (buf0[v][c] - buf1[v][c]);
             buf2[v][c] += cut * (buf1[v][c] - buf2[v][c]);
             buf3[v][c] += cut * (buf2[v][c] - buf3[v][c]);
@@ -186,10 +188,10 @@ void BasicFilter::run(int numVoices) {
             buf3[v][c] = juce::jmax(juce::jmin(buf3[v][c], 1.), -1.);
             */
             if (!highPass) {
-                cables[0].val[v][c] = juce::jmax(juce::jmin(fourPole ? buf3[v][c] : buf1[v][c], 2.), -2.);
+                cables[0].val[v][c] = juce::jmax(juce::jmin(fourPole ? buf3[v][c] : buf1[v][c], 5.), -5.);
             }
             else {
-                cables[0].val[v][c] = juce::jmax(juce::jmin(cables[1].val[v][c] - (fourPole ? buf3[v][c] : buf1[v][c]), 2.), -2.);
+                cables[0].val[v][c] = juce::jmax(juce::jmin(cables[1].val[v][c] - (fourPole ? buf3[v][c] : buf1[v][c]), 5.), -5.);
             }
         }
     }
@@ -198,7 +200,18 @@ void BasicFilter::run(int numVoices) {
 }
 
 void BasicFilter::automate(int channel, double newValue) {
-
+    if (channel < 0 || channel >= 4) {
+        return;
+    }
+    int s = channel;
+    double h = floor((sliders[s]->getMaximum() - sliders[s]->getMinimum()) * (newValue) / sliders[s]->getInterval()) * sliders[s]->getInterval();
+    double v = (sliders[s]->getMinimum() + h);
+    controls[s].val[0] = v;
+    controls[s].val[1] = v;
+    juce::MessageManager::callAsync([this, s, v]() {sliders[s]->setValue(v, juce::sendNotificationSync); });
+    controlsStale = true;
+    dawDirty.clear();
+    dawDirty.push_back(0);
 }
 
 juce::String BasicFilter::getState() {

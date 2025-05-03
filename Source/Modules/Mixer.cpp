@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    Switch.cpp
+    Mixer.cpp
     Created: 16 Mar 2025 11:48:31am
     Author:  DJ_Level_3
 
@@ -9,24 +9,29 @@
 */
 
 #include <JuceHeader.h>
-#include "Switch.h"
+#include "Mixer.h"
 
 //==============================================================================
-Switch::Switch(double sampleRate) : ModuleComponent(sampleRate)
+Mixer::Mixer(double sampleRate) : ModuleComponent(sampleRate)
 {
     numAutomations = 6;
-    moduleType = SwitchType;
+    moduleType = MixerType;
+
     for (int i = 0; i < sliderNames.size(); i++) {
         sliders.push_back(new juce::Slider);
         sliderLabels.push_back(new juce::Label);
         addAndMakeVisible(sliders[i]);
         addAndMakeVisible(sliderLabels[i]);
-        sliders[i]->setRange(-1.0, 1.0, 0.01);
+        sliders[i]->setRange(0.0, 1.0, 0.001);
         sliders[i]->setSliderStyle(juce::Slider::Rotary);
         sliders[i]->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
         sliderLabels[i]->setText(sliderNames[i], juce::dontSendNotification);
         sliderLabels[i]->setJustificationType(juce::Justification::centredBottom);
     }
+    sliders[0]->setRange(-20.0, 6.0, 0.1);
+    sliders[0]->setTextValueSuffix("dB");
+
+    sliders[1]->setRange(-1.0, 1.0, 0.001);
 
     sliders[0]->onValueChange = [this] { double v = sliders[0]->getValue(); controls[0].val[0] = v; controls[0].val[1] = v; controlsStale = true; dawDirty.push_back(0); };
     sliders[1]->onValueChange = [this] { double v = sliders[1]->getValue(); controls[1].val[0] = v; controls[1].val[1] = v; controlsStale = true; dawDirty.push_back(1); };
@@ -62,7 +67,7 @@ Switch::Switch(double sampleRate) : ModuleComponent(sampleRate)
 
     for (int i = 0; i < sliders.size(); i++) {
         sliders[i]->setDoubleClickReturnValue(true, 0);
-        sliders[i]->setValue(0, juce::sendNotificationSync);
+        sliders[i]->setValue(0.0, juce::sendNotificationSync);
     }
     dawDirty.clear();
 
@@ -74,7 +79,7 @@ Switch::Switch(double sampleRate) : ModuleComponent(sampleRate)
     dawDirty.push_back(5);
 }
 
-Switch::~Switch()
+Mixer::~Mixer()
 {
     for (int i = (int)sliders.size() - 1; i >= 0; i--) {
         delete sliders[i];
@@ -82,7 +87,7 @@ Switch::~Switch()
     }
 }
 
-void Switch::paint(juce::Graphics& g)
+void Mixer::paint(juce::Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));   // clear the background
 
@@ -98,20 +103,18 @@ void Switch::paint(juce::Graphics& g)
     area.expand(-5, -5);
     int h = area.getHeight() / 3;
     g.setColour(juce::Colours::grey);
-    g.drawRect(area.removeFromTop(h), 1);   // draw an outline around the channel
-    g.drawRect(area.removeFromTop(h), 1);   // draw an outline around the channel
-    g.drawRect(area.removeFromTop(h), 1);   // draw an outline around the channel
+    g.drawRect(area.removeFromTop(h), 1);   // draw an outline around the master area
     g.setColour(juce::Colours::white);
 }
 
-void Switch::updateControls() {
+void Mixer::updateControls() {
     for (int c = 0; c < 2; c++) {
         scale[c] = controls[0].val[c];
     }
     controlsStale = false;
 }
 
-void Switch::resized()
+void Mixer::resized()
 {
     auto area = getLocalBounds();
     area.removeFromTop(20);
@@ -135,72 +138,62 @@ void Switch::resized()
 
 }
 
-void Switch::reset(int voice) {
+void Mixer::reset(int voice) {
+    for (int c = 0; c < 2; c++) {
+        for (int cable = 0; cable < 6; cable++) {
+            cables[cable].val[voice][c] = 0;
+        }
+    }
 }
 
-void Switch::run(int numVoices) {
+void Mixer::run(int numVoices) {
     if (numVoices > NUM_VOICES) numVoices = NUM_VOICES;
     if (controlsStale) updateControls();
 
-    double aL, bL, aR, bR;
-    double aLO, bLO, aRO, bRO;
-    double swapFacL, swapFacR, swapFacA, swapFacB;
+    double balance[2];
+    double facMix;
+    double fac[4];
+    double mix;
 
     for (int voice = 0; voice < numVoices; voice++) {
-        swapFacR = (controls[4].val[0] / 2) + 0.5;
-        swapFacL = 1 - swapFacR;
+        balance[1] = juce::jmin((controls[1].val[0] + 1), 1.0);
+        balance[0] = juce::jmin((1 - controls[1].val[0]), 1.0);
 
-        swapFacB = (controls[5].val[0] / 2) + 0.5;
-        swapFacA = 1 - swapFacB;
-
-#ifdef SWITCH_EQUAL_LOUDNESS
-        swapFacL = sqrt(swapFacL);
-        swapFacR = sqrt(swapFacR);
-        swapFacA = sqrt(swapFacA);
-        swapFacB = sqrt(swapFacB);
+#ifdef MIXER_PAN_CURVE
+        balance[0] = sqrt(balance[0]);
+        balance[1] = sqrt(balance[1]);
 #endif
-
-        aL = cables[1].val[voice][0] * controls[0].val[0];
-        aR = cables[1].val[voice][1] * controls[1].val[0];
-
-        bL = cables[3].val[voice][0] * controls[2].val[0];
-        bR = cables[3].val[voice][1] * controls[3].val[0];
-
-        // swap L/R
-        aLO = aL * swapFacL + aR * swapFacR;
-        aRO = aR * swapFacL + aL * swapFacR;
-        bLO = bL * swapFacL + bR * swapFacR;
-        bRO = bR * swapFacL + bL * swapFacR;
-
-        // swap A/B
-        aL = aLO * swapFacA + bLO * swapFacB;
-        bL = bLO * swapFacA + aLO * swapFacB;
-        aR = aRO;
-        bR = bRO;
-
-        cables[0].val[voice][0] = (aL + bL) / 2;
-        cables[0].val[voice][1] = (aR + bR) / 2;
-
-        cables[2].val[voice][0] = aL;
-        cables[2].val[voice][1] = aR;
-
-        cables[4].val[voice][0] = bL;
-        cables[4].val[voice][1] = bR;
+        facMix = std::pow(10.0, controls[0].val[0] / 10);
+        fac[0] = controls[2].val[0];
+        fac[1] = controls[3].val[0];
+        fac[2] = controls[4].val[0];
+        fac[3] = controls[5].val[0];
+        for (int c = 0; c < 2; c++) {
+            mix = 0;
+            for (int v = 0; v < 4; v++) {
+                mix += cables[v + 1].val[voice][c] * fac[v] * balance[c] * facMix;
+            }
+            cables[0].val[voice][c] = mix;
+        }
     }
     time += timeStep;
 }
 
-void Switch::automate(int channel, double newValue) {
+void Mixer::automate(int channel, double newValue) {
     if (channel < sliders.size()) {
         int s = channel;
         double h = floor((sliders[s]->getMaximum() - sliders[s]->getMinimum()) * (newValue) / sliders[s]->getInterval()) * sliders[s]->getInterval();
         double v = (sliders[s]->getMinimum() + h);
+        controls[s].val[0] = v;
+        controls[s].val[1] = v;
         juce::MessageManager::callAsync([this, s, v]() {sliders[s]->setValue(v, juce::sendNotificationSync); });
         controlsStale = true;
+        dawDirty.clear();
+        dawDirty.push_back(0);
     }
 }
 
-juce::String Switch::getState() {
+juce::String Mixer::getState() {
     juce::String stateString = "";
     for (int slider = 0; slider < (int)sliders.size(); slider++) {
         stateString.append(juce::String(sliders[slider]->getValue(), 0, false), 10);
@@ -211,11 +204,11 @@ juce::String Switch::getState() {
     return stateString;
 }
 
-void Switch::setState(juce::String state) {
+void Mixer::setState(juce::String state) {
     controlsStale = true;
     juce::StringArray array;
     array.addTokens(state, ":", "");
-    if (array.size() < (int)controls.size() * 2 + 1) {
+    if (array.size() < sliders.size()) {
         for (int slider = 0; slider < (int)sliders.size(); slider++) {
             sliders[slider]->setValue(0.0, juce::sendNotificationSync);
         }

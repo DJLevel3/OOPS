@@ -65,10 +65,7 @@ public:
     int findControl(std::string name);
 
     CableConnection getCable(int index);
-    std::string getCableName(int cableNumber) {
-        if (cableNumber >= cables.size()) return "";
-        return cables[cableNumber].name;
-    }
+    virtual std::string getCableName(int cableNumber) = 0;
     int getNumCables() {
         return (int)cables.size();
     }
